@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiDevLab.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="30">
+
+            <Label Text="Editor" />
+
+            <Editor />
+
+            <Label Text="Editor (borderless)" />
+
+            <Editor Focused="Editor_Focused" Loaded="Editor_Loaded" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
