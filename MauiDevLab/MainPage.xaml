@@ -8,9 +8,9 @@
         <VerticalStackLayout Padding="30" Spacing="30">
 
             <Label Text="Entry" />
-            <Entry/>
+            <Entry />
 
-            <Label Text="Entry (borderless)"/>
+            <Label Text="Entry (borderless)" />
             <Entry Loaded="InputView_Loaded" />
 
             <Label Text="Editor" />
