@@ -7,13 +7,17 @@
     <ScrollView>
         <VerticalStackLayout Padding="30" Spacing="30">
 
-            <Label Text="Editor" />
+            <Label Text="Entry" />
+            <Entry/>
 
+            <Label Text="Entry (borderless)"/>
+            <Entry Loaded="InputView_Loaded" />
+
+            <Label Text="Editor" />
             <Editor />
 
             <Label Text="Editor (borderless)" />
-
-            <Editor Focused="Editor_Focused" Loaded="Editor_Loaded" />
+            <Editor Loaded="InputView_Loaded" />
 
         </VerticalStackLayout>
     </ScrollView>
