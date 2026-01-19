@@ -2,24 +2,52 @@
 <ContentPage
     x:Class="MauiDevLab.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiDevLab"
+    xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.NumericEntry;assembly=Syncfusion.Maui.Toolkit"
+    xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:DataType="local:MainPage">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="30" Spacing="30">
+    <Grid>
+        <Grid Grid.RowDefinitions="Auto,*">
+            <Grid Padding="10">
+                <Button
+                    Clicked="ToggleLightDarkMode"
+                    HorizontalOptions="End"
+                    Text="Toggle Light/Dark Mode" />
+            </Grid>
 
-            <Label Text="Entry" />
-            <Entry />
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="30" Spacing="30">
 
-            <Label Text="Entry (borderless)" />
-            <Entry Loaded="InputView_Loaded" />
+                    <Label Style="{StaticResource FormLabel}" Text="Entry" />
+                    <Entry />
 
-            <Label Text="Editor" />
-            <Editor />
+                    <Label Style="{StaticResource FormLabel}" Text="Entry (borderless)" />
+                    <Entry local:InputViewExtras.BorderThickness="0" />
 
-            <Label Text="Editor (borderless)" />
-            <Editor Loaded="InputView_Loaded" />
+                    <Label Style="{StaticResource FormLabel}" Text="Entry (numeric input)" />
+                    <Entry
+                        local:InputViewExtras.BorderThickness="0"
+                        local:InputViewExtras.MaskType="Numeric"
+                        Keyboard="Numeric" />
 
-        </VerticalStackLayout>
-    </ScrollView>
+                    <Label Style="{StaticResource FormLabel}" Text="Editor" />
+                    <Editor />
 
+                    <Label Style="{StaticResource FormLabel}" Text="Editor (borderless)" />
+                    <Editor local:InputViewExtras.BorderThickness="0" />
+
+                    <Label Style="{StaticResource FormLabel}" Text="Editor (numeric input)" />
+                    <Editor
+                        local:InputViewExtras.BorderThickness="0"
+                        local:InputViewExtras.MaskType="Numeric"
+                        Keyboard="Numeric" />
+
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
 </ContentPage>
