@@ -9,45 +9,85 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:DataType="local:MainPage">
 
-    <Grid>
-        <Grid Grid.RowDefinitions="Auto,*">
-            <Grid Padding="10">
-                <Button
-                    Clicked="ToggleLightDarkMode"
-                    HorizontalOptions="End"
-                    Text="Toggle Light/Dark Mode" />
-            </Grid>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Entry">
+                <Setter Property="BackgroundColor" Value="Transparent" />
+            </Style>
+            <Style TargetType="Editor">
+                <Setter Property="BackgroundColor" Value="Transparent" />
+                <Setter Property="AutoSize" Value="TextChanges" />
+                <!--<Setter Property="MinimumHeightRequest" Value="150" />-->
+            </Style>
+            <Style x:Key="InputViewFrame" TargetType="Grid">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#ffe, Dark=#333}" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
-            <ScrollView Grid.Row="1">
-                <VerticalStackLayout Padding="30" Spacing="30">
-
-                    <Label Style="{StaticResource FormLabel}" Text="Entry" />
-                    <Entry />
-
-                    <Label Style="{StaticResource FormLabel}" Text="Entry (borderless)" />
-                    <Entry local:InputViewExtras.BorderThickness="0" />
-
-                    <Label Style="{StaticResource FormLabel}" Text="Entry (numeric input)" />
-                    <Entry
-                        local:InputViewExtras.BorderThickness="0"
-                        local:InputViewExtras.MaskType="Numeric"
-                        Keyboard="Numeric" />
-
-                    <Label Style="{StaticResource FormLabel}" Text="Editor" />
-                    <Editor />
-
-                    <Label Style="{StaticResource FormLabel}" Text="Editor (borderless)" />
-                    <Editor local:InputViewExtras.BorderThickness="0" />
-
-                    <Label Style="{StaticResource FormLabel}" Text="Editor (numeric input)" />
-                    <Editor
-                        local:InputViewExtras.BorderThickness="0"
-                        local:InputViewExtras.MaskType="Numeric"
-                        Keyboard="Numeric" />
-
-
-                </VerticalStackLayout>
-            </ScrollView>
+    <Grid Grid.RowDefinitions="Auto,*">
+        <Grid Padding="10">
+            <Button
+                Clicked="ToggleLightDarkMode"
+                HorizontalOptions="End"
+                Text="Toggle Light/Dark Mode" />
         </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="30,30,30,250" Spacing="30">
+                <VerticalStackLayout.Resources>
+                    <Style BasedOn="{StaticResource InputViewFrame}" TargetType="Grid" />
+                </VerticalStackLayout.Resources>
+
+                <Label Style="{StaticResource FormLabel}" Text="Entry" />
+                <Grid>
+                    <Entry />
+                </Grid>
+
+                <Label Style="{StaticResource FormLabel}" Text="Entry (borderless)" />
+                <Grid>
+                    <Entry>
+                        <Entry.Behaviors>
+                            <local:BorderlessBehavior />
+                        </Entry.Behaviors>
+                    </Entry>
+                </Grid>
+
+                <Label Style="{StaticResource FormLabel}" Text="Entry (numeric input)" />
+                <Grid>
+                    <Entry>
+                        <Entry.Behaviors>
+                            <local:BorderlessBehavior />
+                            <local:InputMaskBehavior Keys=".,-0123456789" Regex="^[.,-]?[0-9]*$" />
+                        </Entry.Behaviors>
+                    </Entry>
+                </Grid>
+
+                <Label Style="{StaticResource FormLabel}" Text="Editor" />
+                <Grid>
+                    <Editor />
+                </Grid>
+
+                <Label Style="{StaticResource FormLabel}" Text="Editor (borderless)" />
+                <Grid>
+                    <Editor>
+                        <Editor.Behaviors>
+                            <local:BorderlessBehavior />
+                        </Editor.Behaviors>
+                    </Editor>
+                </Grid>
+
+                <Label Style="{StaticResource FormLabel}" Text="Editor (numeric input)" />
+                <Grid>
+                    <Editor Keyboard="Numeric">
+                        <Editor.Behaviors>
+                            <local:BorderlessBehavior />
+                            <local:InputMaskBehavior Keys=".,-0123456789" Regex="^[.,-]?[0-9]*$" />
+                        </Editor.Behaviors>
+                    </Editor>
+                </Grid>
+
+            </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>
