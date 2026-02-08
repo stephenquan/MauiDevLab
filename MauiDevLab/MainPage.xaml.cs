@@ -4,15 +4,11 @@ namespace MauiDevLab;
 
 public partial class MainPage : ContentPage
 {
+	public MainViewModel VM { get; } = new();
+
 	public MainPage()
 	{
-		BindingContext = this;
+		BindingContext = VM;
 		InitializeComponent();
-	}
-
-	void ToggleLightDarkMode(object sender, EventArgs e)
-	{
-		ArgumentNullException.ThrowIfNull(App.Current);
-		App.Current.UserAppTheme = App.Current.RequestedTheme == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark;
 	}
 }

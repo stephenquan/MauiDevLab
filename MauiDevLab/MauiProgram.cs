@@ -1,6 +1,7 @@
 ﻿// MauiProgram.cs
 
 using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Markup;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using Syncfusion.Maui.Toolkit.Hosting;
@@ -16,6 +17,7 @@ public static class MauiProgram
 			.UseMauiApp<App>()
 			.UseSkiaSharp()
 			.UseMauiCommunityToolkit()
+			.UseMauiCommunityToolkitMarkup()
 			.ConfigureSyncfusionToolkit()
 			.ConfigureFonts(fonts =>
 			{
