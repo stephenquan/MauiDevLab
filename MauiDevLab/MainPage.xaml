@@ -12,7 +12,7 @@
     <!--<CollectionView x:Name="cv" ItemsSource="{Binding MyItems}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="local:MyItem">
-                    <Border Margin="2">
+                    <Border Margin="2" HeightRequest="40">
                         <Label Text="{Binding ItemId, StringFormat='Item #{0}'}" />
                     </Border>
                 </DataTemplate>
@@ -31,6 +31,7 @@
         </VerticalStackLayout>
     </ScrollView>-->
 
+    <!--
     <local:VerticalScrollStack ItemsSource="{Binding MyItems}">
         <local:VerticalScrollStack.ItemTemplate>
             <DataTemplate x:DataType="local:MyItem">
@@ -51,5 +52,12 @@
             </DataTemplate>
         </local:VerticalScrollStack.ItemTemplate>
     </local:VerticalScrollStack>
+    -->
+
+    <ScrollView>
+        <VerticalStackLayout Padding="25" Spacing="25">
+            <Button Command="{Binding ClickedCommand}" Text="{Binding ButtonText}" />
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>
