@@ -9,33 +9,40 @@ namespace MauiDevLab;
 
 public partial class MyItem : ObservableObject
 {
-	[ObservableProperty]
-	public partial int ItemId { get; set; } = 0;
-	[ObservableProperty]
-	public partial string TextValue { get; set; } = string.Empty;
+	[ObservableProperty] public partial int ItemId { get; set; } = 0;
+	[ObservableProperty] public partial string TextValue { get; set; } = string.Empty;
+	[ObservableProperty] public partial double TY { get; set; } = 0.0;
+	[ObservableProperty] public partial double H { get; set; } = 0.0;
 	public static MyItem Zero = new();
 }
 
 public partial class MainViewModel : ObservableObject
 {
+	[ObservableProperty] public partial int Count { get; set; } = 0;
+	[ObservableProperty] public partial double TotalHeight { get; set; } = 0.0;
+
 	public ObservableCollection<MyItem> MyItems { get; } = [];
 
-	[ObservableProperty]
-	public partial string ButtonText { get; set; } = "Click me";
+	[ObservableProperty] public partial string ButtonText { get; set; } = "Click me";
 
 	public MainViewModel()
 	{
-		for (int i = 0; i <= 500000; i++)
+		double TY = 0.0;
+		for (int i = 0; i <= 1000; i++)
 		{
-			MyItems.Add(new MyItem() { ItemId = i });
+			double H = 40.0;
+			MyItems.Add(new MyItem() { ItemId = i, TY = TY, H = H, TextValue = $"Item #{i}" });
+			TY += H;
+			TotalHeight += H;
 		}
 	}
 
 	[RelayCommand]
 	async Task Clicked()
 	{
+		Count++;
 		//dispatcher.DispatchAsync(async () => await RunAsync());
-		await RunAsync();
+		//await RunAsync();
 	}
 
 	async Task RunAsync()

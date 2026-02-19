@@ -28,7 +28,7 @@ public partial class VerticalScrollStack : ContentView
 	static void UpdateVisibleItems(BindableObject bindable, object oldValue, object newValue)
 		=> ((VerticalScrollStack)bindable).UpdateVisibleItems();
 
-	void UpdateVisibleItems()
+	public void UpdateVisibleItems()
 	{
 		if (ItemsSource is System.Collections.ICollection c)
 		{

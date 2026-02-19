@@ -54,10 +54,104 @@
     </local:VerticalScrollStack>
     -->
 
-    <ScrollView>
+    <!--<ScrollView>
         <VerticalStackLayout Padding="25" Spacing="25">
             <Button Command="{Binding ClickedCommand}" Text="{Binding ButtonText}" />
         </VerticalStackLayout>
-    </ScrollView>
+    </ScrollView>-->
 
+    <!--<ScrollView>
+        <VerticalStackLayout>
+            <Label HeightRequest="300" Text="Start" />
+            <Grid ColumnDefinitions="*,Auto" HeightRequest="300">
+                <Grid>
+    -->
+    <!--    -->
+    <!--
+                </Grid>
+                <ScrollView
+                    Grid.Column="1"
+                    Margin="0,0,10,0"
+                    BackgroundColor="Orange"
+                    WidthRequest="30">
+                    <Grid HeightRequest="2000" />
+                </ScrollView>
+            </Grid>
+            <Label HeightRequest="300" Text="End" />
+        </VerticalStackLayout>
+    </ScrollView>-->
+
+    <!--
+        <VerticalStackLayout Padding="25" Spacing="25">
+            <Button Command="{Binding ClickedCommand}" Text="{local:Eval '({Count} mod 2)'}" />
+            <local:Collapser LabelText="Test">
+                <Button Text="Hello" />
+            </local:Collapser>
+
+            <Grid
+                BackgroundColor="Red"
+                HeightRequest="600"
+                WidthRequest="100" />
+
+            <CollectionView HeightRequest="250" ItemsSource="{Binding MyItems}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:MyItem">
+                        <Border Margin="2">
+                            <Label Text="{Binding ItemId, StringFormat='Item #{0}'}" />
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    -->
+
+    <!--<Grid BindableLayout.ItemsSource="{Binding MyItems}" HeightRequest="{Binding TotalHeight}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="local:MyItem">
+                    <Border
+                        Margin="2"
+                        HeightRequest="{Binding H}"
+                        TranslationY="{Binding TY}"
+                        VerticalOptions="Start"
+                        WidthRequest="200">
+                        <Label Text="{Binding TextValue}" />
+                    </Border>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </Grid>-->
+    <!--<local:FastLayout BindableLayout.ItemsSource="{Binding MyItems}" HeightRequest="{Binding TotalHeight}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="local:MyItem">
+                    <Label Text="{Binding TextValue}" />
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </local:FastLayout>
+    </ScrollView>-->
+
+    <!--
+    <Grid>
+        <local:NewVerticalScrollStack />
+    </Grid>
+    -->
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid Padding="40">
+            <Label
+                HorizontalOptions="Center"
+                Text="Demos"
+                VerticalOptions="Center" />
+        </Grid>
+        <Grid Grid.Row="1" Padding="30">
+            <CollectionView ItemsSource="{x:Static local:Demos.DemoList}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Grid Padding="5">
+                            <Button Clicked="OnStartDemo" Text="{Binding .}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
 </ContentPage>
