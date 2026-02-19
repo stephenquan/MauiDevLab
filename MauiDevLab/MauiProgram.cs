@@ -24,9 +24,12 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			})
-			.RegisterDemo("VerticalStackList Demo", nameof(VerticalScrollStackDemo), typeof(VerticalScrollStackDemo))
-			;
 		;
+
+		builder
+			.RegisterDemo("VerticalStackLayout Demo (Slow)", nameof(VerticalStackLayoutDemo), typeof(VerticalStackLayoutDemo))
+			.RegisterDemo("VerticalStackList Demo (Fast)", nameof(VerticalScrollStackDemo), typeof(VerticalScrollStackDemo))
+			;
 
 #if DEBUG
 		builder.Logging.AddDebug();

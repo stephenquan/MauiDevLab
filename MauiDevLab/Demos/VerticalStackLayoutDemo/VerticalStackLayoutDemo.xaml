@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiDevLab.VerticalStackLayoutDemo"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiDevLab"
+    Title="VerticalStackLayout Demo (Slow)"
+    x:DataType="local:VerticalStackLayoutDemo">
+    <Grid ColumnDefinitions="2*,*">
+        <Grid RowDefinitions="*,Auto">
+            <ScrollView>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding SlowItems}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="local:MyItem">
+                            <Grid Padding="2" HeightRequest="50">
+                                <Entry Text="{Binding TextValue, Mode=TwoWay}" VerticalOptions="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
+            <Grid Grid.Row="1" Padding="5">
+                <Label Text="{Binding SlowItems.Count, StringFormat='Total: {0}'}" />
+            </Grid>
+        </Grid>
+        <Grid Grid.Column="1">
+            <VerticalStackLayout
+                Padding="30"
+                Spacing="25"
+                VerticalOptions="Center">
+                <Button Clicked="OnAddMany" Text="Add 10" />
+                <Button Clicked="OnAddMany" Text="Add 100" />
+                <Button Clicked="OnAddMany" Text="Add 1000" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>
