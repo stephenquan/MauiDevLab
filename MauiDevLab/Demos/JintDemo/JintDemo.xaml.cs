@@ -52,7 +52,7 @@ public partial class JintDemo : ContentPage
 			}
 			catch (err)
 			{
-				__setError(err.message);
+				__setError(err?.message ?? String(err));
 			}
 		})();
 		""";

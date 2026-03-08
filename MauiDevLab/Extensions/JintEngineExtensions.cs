@@ -20,8 +20,11 @@ public static class JintEngineExtensions
 		}
 		catch (Exception ex)
 		{
-			var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
-			reject(jsError);
+			engineContext.Post(_ =>
+			{
+				var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
+				reject(jsError);
+			}, null);
 			return promise;
 		}
 
@@ -59,8 +62,11 @@ public static class JintEngineExtensions
 		}
 		catch (Exception ex)
 		{
-			var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
-			reject(jsError);
+			engineContext.Post(_ =>
+			{
+				var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
+				reject(jsError);
+			}, null);
 			return promise;
 		}
 
