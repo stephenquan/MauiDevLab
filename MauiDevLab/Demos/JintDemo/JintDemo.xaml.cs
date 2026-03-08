@@ -76,8 +76,10 @@ public partial class JintDemo : ContentPage
 		TaskCompletionSource<object?> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(60));
 		cts.Token.Register(() => tcs.TrySetCanceled());
+		var engineContext = SynchronizationContext.Current;
+		ArgumentNullException.ThrowIfNull(engineContext, nameof(SynchronizationContext.Current));
 		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
-		JintFunctions functions = new(engine, this, cts.Token);
+		JintFunctions functions = new(engine, engineContext, this, cts.Token);
 		engine.SetValue("__tcs", tcs);
 		engine.SetValue("__setResult", new Action<object?>(result => tcs.TrySetResult(result)));
 		engine.SetValue("__setError", new Action<string>(error => tcs.TrySetException(new Exception(error))));

@@ -24,7 +24,7 @@ public class CommonFunctions
 	{
 		using var response = await HttpClientShared.GetAsync(url, ct);
 		response.EnsureSuccessStatusCode();
-		return await response.Content.ReadAsStringAsync();
+		return await response.Content.ReadAsStringAsync(ct);
 	}
 
 	public void TraceWriteLine(params object?[] args)
