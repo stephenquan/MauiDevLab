@@ -12,6 +12,8 @@ public class JintFunctions : CommonFunctions
 
 	public JintFunctions(Engine engine, SynchronizationContext engineContext, Page page, CancellationToken ct) : base(page, ct)
 	{
+		ArgumentNullException.ThrowIfNull(engine, nameof(engine));
+		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
 		this.engine = engine;
 		this.engineContext = engineContext;
 	}
