@@ -10,39 +10,80 @@ public static class JintEngineExtensions
 	// --- Core shared implementations ---
 	static JsValue ToFuncPromiseInternal<T>(Engine engine, Func<Task<T>> invokeAsync, Action<Action>? finalizePromise = null)
 	{
-		finalizePromise ??= static a => a();
-		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
-		_ = Task.Run(async () =>
+		var context = SynchronizationContext.Current;
+
+		finalizePromise ??= action =>
 		{
-			try
+			if (context is not null)
 			{
-				var result = await invokeAsync();
+				context.Post(_ => action(), null);
+			}
+			else
+			{
+				action();
+			}
+		};
+
+		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
+
+		invokeAsync().ContinueWith(t =>
+		{
+			if (t.IsFaulted)
+			{
+				var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
+				finalizePromise(() => reject(jsError));
+			}
+			else if (t.IsCanceled)
+			{
+				var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
+				finalizePromise(() => reject(jsError));
+			}
+			else
+			{
+				var result = t.Result;
 				finalizePromise(() => resolve(JsValue.FromObject(engine, result)));
 			}
-			catch (Exception ex)
-			{
-				finalizePromise(() => reject(JsValue.FromObject(engine, ex)));
-			}
 		});
+
 		return promise;
 	}
 
 	static JsValue ToActionPromiseInternal(Engine engine, Func<Task> invokeAsync, Action<Action>? finalizePromise = null)
 	{
-		finalizePromise ??= static a => a();
-		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
-		_ = Task.Run(async () =>
+		var context = SynchronizationContext.Current;
+
+		finalizePromise ??= action =>
 		{
-			try
+			if (context is not null)
 			{
-				await invokeAsync();
+				context.Post(_ => action(), null);
+			}
+			else
+			{
+				action();
+			}
+		};
+
+		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
+
+		invokeAsync().ContinueWith(t =>
+		{
+			if (t.IsFaulted)
+			{
+				var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
+				finalizePromise(() => reject(jsError));
+			}
+			else if (t.IsCanceled)
+			{
+				var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
+				finalizePromise(() => reject(jsError));
+			}
+			else
+			{
 				finalizePromise(() => resolve(JsValue.Null));
 			}
-			catch (Exception ex)
-			{
-				finalizePromise(() => reject(JsValue.FromObject(engine, ex)));
-			}
 		});
+
 		return promise;
 	}
 

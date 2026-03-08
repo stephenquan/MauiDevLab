@@ -16,7 +16,7 @@ public class CommonFunctions
 		return x + y;
 	}
 
-	public HttpClient HttpClientShared { get; } = new();
+	public static HttpClient HttpClientShared { get; } = new();
 
 	public async Task<string> FetchAsync(string url)
 	{

@@ -72,13 +72,21 @@ public partial class JintDemo : ContentPage
 		script.AppendLine(ScriptText);
 		script.AppendLine(ExecuteScriptText);
 
-		TaskCompletionSource<object?> tcs = new();
+		TaskCompletionSource<object?> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 		Jint.Engine engine = new();
 		JintFunctions functions = new(this, engine);
 		engine.SetValue("__tcs", tcs);
 		engine.SetValue("__functions", functions);
-		engine.Execute(script.ToString());
-		var result = await tcs.Task;
-		ResultText = result?.ToString() ?? "null";
+		try
+		{
+			engine.Execute(script.ToString());
+			var result = await tcs.Task;
+			ResultText = result?.ToString() ?? "null";
+		}
+		catch (Exception ex)
+		{
+			tcs.SetException(ex);
+			ResultText = "Error: " + ex.Message;
+		}
 	}
 }
