@@ -45,7 +45,7 @@ public static class JintEngineExtensions
 				var result = t.Result;
 				resolve(JsValue.FromObject(engine, result));
 			}
-		}, null));
+		}, null), TaskScheduler.Default);
 
 		return promise;
 	}
@@ -86,7 +86,7 @@ public static class JintEngineExtensions
 			{
 				resolve(JsValue.Null);
 			}
-		}, null));
+		}, null), TaskScheduler.Default);
 
 		return promise;
 	}
