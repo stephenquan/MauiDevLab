@@ -9,6 +9,7 @@ public class CommonFunctions
 
 	public CommonFunctions(Page page, CancellationToken ct)
 	{
+		System.ArgumentNullException.ThrowIfNull(page, nameof(page));
 		this.page = page;
 		this.ct = ct;
 	}

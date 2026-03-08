@@ -10,9 +10,9 @@ public static class JintEngineExtensions
 	// --- Core shared implementations ---
 	static JsValue ToFuncPromiseInternal<T>(Engine engine, Func<Task<T>> invokeAsync, SynchronizationContext engineContext)
 	{
-		ArgumentNullException.ThrowIfNull(engine);
-		ArgumentNullException.ThrowIfNull(invokeAsync);
-		ArgumentNullException.ThrowIfNull(engineContext);
+		ArgumentNullException.ThrowIfNull(engine, nameof(engine));
+		ArgumentNullException.ThrowIfNull(invokeAsync, nameof(invokeAsync));
+		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
@@ -56,9 +56,9 @@ public static class JintEngineExtensions
 
 	static JsValue ToActionPromiseInternal(Engine engine, Func<Task> invokeAsync, SynchronizationContext engineContext)
 	{
-		ArgumentNullException.ThrowIfNull(engine);
-		ArgumentNullException.ThrowIfNull(invokeAsync);
-		ArgumentNullException.ThrowIfNull(engineContext);
+		ArgumentNullException.ThrowIfNull(engine, nameof(engine));
+		ArgumentNullException.ThrowIfNull(invokeAsync, nameof(invokeAsync));
+		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
