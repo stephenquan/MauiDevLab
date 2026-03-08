@@ -26,7 +26,20 @@ public static class JintEngineExtensions
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
-		invokeAsync().ContinueWith(t =>
+		Task<T> task;
+
+		try
+		{
+			task = invokeAsync();
+		}
+		catch (Exception ex)
+		{
+			var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
+			finalizePromise(() => reject(jsError));
+			return promise;
+		}
+
+		task.ContinueWith(t =>
 		{
 			if (t.IsFaulted)
 			{
@@ -66,7 +79,20 @@ public static class JintEngineExtensions
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
-		invokeAsync().ContinueWith(t =>
+		Task task;
+
+		try
+		{
+			task = invokeAsync();
+		}
+		catch (Exception ex)
+		{
+			var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
+			finalizePromise(() => reject(jsError));
+			return promise;
+		}
+
+		task.ContinueWith(t =>
 		{
 			if (t.IsFaulted)
 			{

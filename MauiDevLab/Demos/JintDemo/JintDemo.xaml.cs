@@ -3,6 +3,7 @@
 using System.Text;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.Input;
+using Jint;
 
 namespace MauiDevLab;
 
@@ -73,7 +74,8 @@ public partial class JintDemo : ContentPage
 		script.AppendLine(ExecuteScriptText);
 
 		TaskCompletionSource<object?> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-		Jint.Engine engine = new();
+		CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
 		JintFunctions functions = new(this, engine);
 		engine.SetValue("__tcs", tcs);
 		engine.SetValue("__functions", functions);
@@ -85,7 +87,6 @@ public partial class JintDemo : ContentPage
 		}
 		catch (Exception ex)
 		{
-			tcs.SetException(ex);
 			ResultText = "Error: " + ex.Message;
 		}
 	}

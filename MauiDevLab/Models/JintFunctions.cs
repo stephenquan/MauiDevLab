@@ -7,7 +7,7 @@ namespace MauiDevLab;
 
 public class JintFunctions : CommonFunctions
 {
-	protected Engine engine;
+	protected readonly Engine engine;
 
 	public JintFunctions(Page page, Engine engine) : base(page)
 	{

@@ -4,7 +4,7 @@ namespace MauiDevLab;
 
 public class CommonFunctions
 {
-	protected Page page;
+	protected readonly Page page;
 
 	public CommonFunctions(Page page)
 	{
