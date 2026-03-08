@@ -34,20 +34,27 @@ public static class JintEngineExtensions
 
 		task.ContinueWith(t => engineContext.Post(_ =>
 		{
-			if (t.IsFaulted)
+			try
 			{
-				var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
-				reject(jsError);
+				if (t.IsFaulted)
+				{
+					var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
+					reject(jsError);
+				}
+				else if (t.IsCanceled)
+				{
+					var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
+					reject(jsError);
+				}
+				else
+				{
+					var result = t.Result;
+					resolve(JsValue.FromObject(engine, result));
+				}
 			}
-			else if (t.IsCanceled)
+			finally
 			{
-				var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
-				reject(jsError);
-			}
-			else
-			{
-				var result = t.Result;
-				resolve(JsValue.FromObject(engine, result));
+				engine.Advanced.ProcessTasks();
 			}
 		}, null), TaskScheduler.Default);
 
@@ -80,19 +87,26 @@ public static class JintEngineExtensions
 
 		task.ContinueWith(t => engineContext.Post(_ =>
 		{
-			if (t.IsFaulted)
+			try
 			{
-				var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
-				reject(jsError);
+				if (t.IsFaulted)
+				{
+					var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
+					reject(jsError);
+				}
+				else if (t.IsCanceled)
+				{
+					var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
+					reject(jsError);
+				}
+				else
+				{
+					resolve(JsValue.Null);
+				}
 			}
-			else if (t.IsCanceled)
+			finally
 			{
-				var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
-				reject(jsError);
-			}
-			else
-			{
-				resolve(JsValue.Null);
+				engine.Advanced.ProcessTasks();
 			}
 		}, null), TaskScheduler.Default);
 
