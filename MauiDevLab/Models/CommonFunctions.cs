@@ -5,10 +5,12 @@ namespace MauiDevLab;
 public class CommonFunctions
 {
 	protected readonly Page page;
+	protected readonly CancellationToken ct;
 
-	public CommonFunctions(Page page)
+	public CommonFunctions(Page page, CancellationToken ct)
 	{
 		this.page = page;
+		this.ct = ct;
 	}
 
 	public double Add(double x, double y)
@@ -20,7 +22,7 @@ public class CommonFunctions
 
 	public async Task<string> FetchAsync(string url)
 	{
-		using var response = await HttpClientShared.GetAsync(url);
+		using var response = await HttpClientShared.GetAsync(url, ct);
 		response.EnsureSuccessStatusCode();
 		return await response.Content.ReadAsStringAsync();
 	}
