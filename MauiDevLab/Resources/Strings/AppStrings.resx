@@ -129,6 +129,9 @@
   <data name="LABEL_HELLO_WORLD" xml:space="preserve">
     <value>Hello, World!</value>
   </data>
+  <data name="LABEL_MYITEM" xml:space="preserve">
+    <value>Hello {0}</value>
+  </data>
   <data name="LABEL_WELCOME" xml:space="preserve">
     <value>Welcome to .NET MAUI</value>
   </data>

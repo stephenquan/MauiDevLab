@@ -97,6 +97,15 @@ namespace MauiDevLab.Resources.Strings {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hello {0}.
+        /// </summary>
+        internal static string LABEL_MYITEM {
+            get {
+                return ResourceManager.GetString("LABEL_MYITEM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Welcome to .NET MAUI.
         /// </summary>
         internal static string LABEL_WELCOME {

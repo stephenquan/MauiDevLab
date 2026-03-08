@@ -39,6 +39,7 @@ public partial class EvalExtension : BindableObject, IMarkupExtension<BindingBas
 		{
 			this.SetBinding(BindingContextProperty, static (BindableObject b) => b.BindingContext, BindingMode.OneWay, source: targetObject);
 		}
-		return BindingBase.Create<EvalExtension, object?>(static e => e.Result, BindingMode.OneWay, source: this);
+		//return BindingBase.Create<EvalExtension, object?>(static e => e.Result, BindingMode.OneWay, source: this);
+		return new Binding("Result", BindingMode.OneWay, source: this);
 	}
 }

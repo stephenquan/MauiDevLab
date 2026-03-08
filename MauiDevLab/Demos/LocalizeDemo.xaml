@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiDevLab.LocalizeDemo"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiDevLab"
+    Title="Localize Demo"
+    x:DataType="local:LocalizeDemo"
+    NavigatedFrom="ContentPage_NavigatedFrom"
+    NavigatedTo="ContentPage_NavigatedTo">
+    <Grid ColumnDefinitions="2*,*">
+        <ContentView Padding="30">
+            <Grid RowDefinitions="*,Auto">
+                <CollectionView ItemsSource="{Binding LocalizeItems}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:MyItem">
+                            <ContentView Padding="5">
+                                <Label Text="{local:Localize LABEL_MYITEM, X0={Binding TextValue}}" />
+                            </ContentView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <ContentView Grid.Row="1" Padding="5">
+                    <Label>
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Profiler:" />
+                                <Span Text="{Binding MyItemCount, StringFormat=' MyItem: {0}'}" />
+                                <Span Text="{Binding LocalizeExtensionCount, StringFormat=' Localize: {0}'}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </ContentView>
+            </Grid>
+        </ContentView>
+        <ContentView Grid.Column="1" Padding="30">
+            <VerticalStackLayout Spacing="25" VerticalOptions="Center">
+                <Button Clicked="OnAddItems" Text="Add 2 Items" />
+                <Button Clicked="OnAddItems" Text="Add 1000 Items" />
+                <Button Clicked="OnClearItems" Text="Clear" />
+                <Button Clicked="OnGC" Text="GC" />
+            </VerticalStackLayout>
+        </ContentView>
+    </Grid>
+</ContentPage>

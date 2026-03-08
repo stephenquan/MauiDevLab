@@ -55,7 +55,7 @@ public class LocalizeBindingBase
 					var result = v[1];
 					if (converter is not null)
 					{
-						result = converter.Convert(result, null, converterParameter, culture);
+						result = converter.Convert(result, typeof(object), converterParameter, culture);
 					}
 					return result;
 				}

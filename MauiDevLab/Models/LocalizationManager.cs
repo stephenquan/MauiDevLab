@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace MauiDevLab;
 
-public class LocalizationManager : INotifyPropertyChanged
+public partial class LocalizationManager : INotifyPropertyChanged
 {
 	public static LocalizationManager Current { get; } = new LocalizationManager();
 
@@ -23,8 +23,11 @@ public class LocalizationManager : INotifyPropertyChanged
 			CultureInfo.CurrentUICulture = value;
 			WeakReferenceMessenger.Default.Send(new LocalizeCultureMessage(value));
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Culture)));
+			CultureChanged?.Invoke(this, value);
 		}
 	}
+
+	public EventHandler<CultureInfo>? CultureChanged;
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 }

@@ -59,7 +59,9 @@ public partial class VerticalScrollStack : ContentView
 		var innerLayout = new VerticalStackLayout();
 		innerLayout.SetBinding(
 			BindableLayout.ItemsSourceProperty,
-			BindingBase.Create<VerticalScrollStack, ObservableCollection<object?>>(static cv => cv.VisibleItemsSource, BindingMode.OneWay, source: this));
+			//BindingBase.Create<VerticalScrollStack, ObservableCollection<object?>>(static cv => cv.VisibleItemsSource, BindingMode.OneWay, source: this)
+			new Binding("VisibleItemsSource", BindingMode.OneWay, source: this)
+			);
 		innerLayout.SetBinding(
 			BindableLayout.ItemTemplateProperty,
 			BindingBase.Create<VerticalScrollStack, DataTemplate>(static cv => cv.ItemTemplate, BindingMode.OneWay, source: this));

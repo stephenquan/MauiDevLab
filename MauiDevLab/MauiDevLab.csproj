@@ -17,7 +17,6 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<MauiVersion>10.0.30</MauiVersion>
 
 		<!-- Display name -->
 		<ApplicationTitle>MauiDevLab</ApplicationTitle>
@@ -39,15 +38,6 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
-  <PropertyGroup>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
-  
-  <!-- Opt into Binbdable Property Source Generators -->
-  <PropertyGroup>
-    <NoWarn>MCTEXP001, CS0436</NoWarn>
-  </PropertyGroup>
-  
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -95,41 +85,57 @@
 		<None Include="**\*.Windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	</ItemGroup>
 
-  <PropertyGroup>
-    <CommunityToolkitMauiVersion>14.0.0</CommunityToolkitMauiVersion>
-  </PropertyGroup>
-  
+	<PropertyGroup>
+		<MicrosoftExtensionsLoggingDebug>10.0.3</MicrosoftExtensionsLoggingDebug>
+		<CommunityToolkitMvvmVersion>8.4.0</CommunityToolkitMvvmVersion>
+		<CommunityToolkitMauiVersion>14.0.1</CommunityToolkitMauiVersion>
+		<CommunityToolkitMauiMarkupVersion>7.0.0</CommunityToolkitMauiMarkupVersion>
+		<SkiaSharpViewsMauiControlsVersion>3.119.1</SkiaSharpViewsMauiControlsVersion>
+		<SyncfusionMauiToolkitVersion>1.0.8</SyncfusionMauiToolkitVersion>
+		<JintVersion>4.6.1</JintVersion>
+		<SQuanHelpersMauiMvvmVersion>10.0.41</SQuanHelpersMauiMvvmVersion>
+	</PropertyGroup>
+	
 	<ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-    <PackageReference Include="CommunityToolkit.Maui" Version="$(CommunityToolkitMauiVersion)" />
-    <PackageReference Include="CommunityToolkit.Maui.Markup" Version="7.0.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
-		<PackageReference Include="SQuan.Helpers.Maui.Mvvm" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftExtensionsLoggingDebug)" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkitMvvmVersion)" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="$(CommunityToolkitMauiVersion)" />
+		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="$(CommunityToolkitMauiMarkupVersion)" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="$(SkiaSharpViewsMauiControlsVersion)" />
 		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.8" />
-		<PackageReference Include="Jint" Version="4.5.0" />
+		<PackageReference Include="Jint" Version="$(JintVersion)" />
+		<PackageReference Include="SQuan.Helpers.Maui.Mvvm" Version="$(SQuanHelpersMauiMvvmVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Resources\Strings\AppStrings.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>AppStrings.resx</DependentUpon>
-	  </Compile>
+		<AssemblyMetadata Include="AppInfo.VersionInfo.Microsoft.Maui.Controls" Value="$(MauiVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.Microsoft.Extensions.Logging.Debug" Value="$(MicrosoftExtensionsLoggingDebugVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.CommunityToolkit.Mvvm" Value="$(CommunityToolkitMvvmVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.CommunityToolkit.Maui" Value="$(CommunityToolkitMauiVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.CommunityToolkit.Maui.Markup" Value="$(CommunityToolkitMauiMarkupVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.SkiaSharp.Views.Maui.Controls" Value="$(SkiaSharpViewsMauiControlsVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.Syncfusion.Maui.Toolkit" Value="$(SyncfusionMauiToolkitVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.Jint" Value="$(JintVersion)" />
+		<AssemblyMetadata Include="AppInfo.VersionInfo.SQuan.Helpers.Maui.Mvvm" Value="$(SQuanHelpersMauiMvvmVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Update="Resources\Strings\AppStrings.resx">
-	    <Generator>ResXFileCodeGenerator</Generator>
-	    <LastGenOutput>AppStrings.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
+		<Compile Update="Resources\Strings\AppStrings.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>AppStrings.resx</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="VerticalStackLayoutDemo.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+		<EmbeddedResource Update="Resources\Strings\AppStrings.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>AppStrings.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Behaviors\" />
+	</ItemGroup>
 </Project>

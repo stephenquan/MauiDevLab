@@ -4,145 +4,15 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiDevLab"
+    xmlns:r="clr-namespace:System.Reflection;assembly=netstandard"
     xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.NumericEntry;assembly=Syncfusion.Maui.Toolkit"
     xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    x:DataType="local:MainViewModel">
+    x:DataType="local:MainPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="25">
+            <Label HorizontalOptions="Center" Text="Demos" />
 
-    <!--<CollectionView x:Name="cv" ItemsSource="{Binding MyItems}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="local:MyItem">
-                    <Border Margin="2" HeightRequest="40">
-                        <Label Text="{Binding ItemId, StringFormat='Item #{0}'}" />
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>-->
-
-    <!--<ScrollView>
-        <VerticalStackLayout BindableLayout.ItemsSource="{Binding MyItems}">
-            <BindableLayout.ItemTemplate>
-                <DataTemplate x:DataType="local:MyItem">
-                    <Border Margin="2">
-                        <Label Text="{Binding ItemId, StringFormat='Item #{0}'}" />
-                    </Border>
-                </DataTemplate>
-            </BindableLayout.ItemTemplate>
-        </VerticalStackLayout>
-    </ScrollView>-->
-
-    <!--
-    <local:VerticalScrollStack ItemsSource="{Binding MyItems}">
-        <local:VerticalScrollStack.ItemTemplate>
-            <DataTemplate x:DataType="local:MyItem">
-                <Grid Padding="4" HeightRequest="44">
-                    <Border Padding="4,0,4,0">
-                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
-                            <Label
-                                MinimumWidthRequest="90"
-                                Text="{Binding ItemId, StringFormat='Item #{0}'}"
-                                VerticalOptions="Center" />
-                            <Entry
-                                Grid.Column="1"
-                                Placeholder="Enter text..."
-                                Text="{Binding TextValue, Mode=TwoWay}" />
-                        </Grid>
-                    </Border>
-                </Grid>
-            </DataTemplate>
-        </local:VerticalScrollStack.ItemTemplate>
-    </local:VerticalScrollStack>
-    -->
-
-    <!--<ScrollView>
-        <VerticalStackLayout Padding="25" Spacing="25">
-            <Button Command="{Binding ClickedCommand}" Text="{Binding ButtonText}" />
-        </VerticalStackLayout>
-    </ScrollView>-->
-
-    <!--<ScrollView>
-        <VerticalStackLayout>
-            <Label HeightRequest="300" Text="Start" />
-            <Grid ColumnDefinitions="*,Auto" HeightRequest="300">
-                <Grid>
-    -->
-    <!--    -->
-    <!--
-                </Grid>
-                <ScrollView
-                    Grid.Column="1"
-                    Margin="0,0,10,0"
-                    BackgroundColor="Orange"
-                    WidthRequest="30">
-                    <Grid HeightRequest="2000" />
-                </ScrollView>
-            </Grid>
-            <Label HeightRequest="300" Text="End" />
-        </VerticalStackLayout>
-    </ScrollView>-->
-
-    <!--
-        <VerticalStackLayout Padding="25" Spacing="25">
-            <Button Command="{Binding ClickedCommand}" Text="{local:Eval '({Count} mod 2)'}" />
-            <local:Collapser LabelText="Test">
-                <Button Text="Hello" />
-            </local:Collapser>
-
-            <Grid
-                BackgroundColor="Red"
-                HeightRequest="600"
-                WidthRequest="100" />
-
-            <CollectionView HeightRequest="250" ItemsSource="{Binding MyItems}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="local:MyItem">
-                        <Border Margin="2">
-                            <Label Text="{Binding ItemId, StringFormat='Item #{0}'}" />
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-        </VerticalStackLayout>
-    -->
-
-    <!--<Grid BindableLayout.ItemsSource="{Binding MyItems}" HeightRequest="{Binding TotalHeight}">
-            <BindableLayout.ItemTemplate>
-                <DataTemplate x:DataType="local:MyItem">
-                    <Border
-                        Margin="2"
-                        HeightRequest="{Binding H}"
-                        TranslationY="{Binding TY}"
-                        VerticalOptions="Start"
-                        WidthRequest="200">
-                        <Label Text="{Binding TextValue}" />
-                    </Border>
-                </DataTemplate>
-            </BindableLayout.ItemTemplate>
-        </Grid>-->
-    <!--<local:FastLayout BindableLayout.ItemsSource="{Binding MyItems}" HeightRequest="{Binding TotalHeight}">
-            <BindableLayout.ItemTemplate>
-                <DataTemplate x:DataType="local:MyItem">
-                    <Label Text="{Binding TextValue}" />
-                </DataTemplate>
-            </BindableLayout.ItemTemplate>
-        </local:FastLayout>
-    </ScrollView>-->
-
-    <!--
-    <Grid>
-        <local:NewVerticalScrollStack />
-    </Grid>
-    -->
-
-    <Grid RowDefinitions="Auto,*">
-        <Grid Padding="40">
-            <Label
-                HorizontalOptions="Center"
-                Text="Demos"
-                VerticalOptions="Center" />
-        </Grid>
-        <Grid Grid.Row="1" Padding="30">
             <CollectionView ItemsSource="{x:Static local:Demos.DemoList}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
@@ -152,6 +22,22 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </Grid>
-    </Grid>
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding AppVersionInfos}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="r:AssemblyMetadataAttribute">
+                        <Label>
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}{0}: {1}">
+                                    <Binding Path="Key" />
+                                    <Binding Path="Value" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
