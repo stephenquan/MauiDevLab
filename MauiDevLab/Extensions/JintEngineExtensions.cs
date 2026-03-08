@@ -21,28 +21,28 @@ public static class JintEngineExtensions
 		catch (Exception ex)
 		{
 			var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
-			engineContext.Post(_ => reject(jsError), null);
+			reject(jsError);
 			return promise;
 		}
 
-		task.ContinueWith(t =>
+		task.ContinueWith(t => engineContext.Post(_ =>
 		{
 			if (t.IsFaulted)
 			{
 				var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
-				engineContext.Post(_ => reject(jsError), null);
+				reject(jsError);
 			}
 			else if (t.IsCanceled)
 			{
 				var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
-				engineContext.Post(_ => reject(jsError), null);
+				reject(jsError);
 			}
 			else
 			{
 				var result = t.Result;
-				engineContext.Post(_ => resolve(JsValue.FromObject(engine, result)), null);
+				resolve(JsValue.FromObject(engine, result);
 			}
-		});
+		}, null));
 
 		return promise;
 	}
@@ -60,27 +60,27 @@ public static class JintEngineExtensions
 		catch (Exception ex)
 		{
 			var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
-			engineContext.Post(_ => reject(jsError), null);
+			reject(jsError);
 			return promise;
 		}
 
-		task.ContinueWith(t =>
+		task.ContinueWith(t => engineContext.Post(_ =>
 		{
 			if (t.IsFaulted)
 			{
 				var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
-				engineContext.Post(_ => reject(jsError), null);
+				reject(jsError);
 			}
 			else if (t.IsCanceled)
 			{
 				var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
-				engineContext.Post(_ => reject(jsError), null);
+				reject(jsError);
 			}
 			else
 			{
-				engineContext.Post(_ => resolve(JsValue.Null), null);
+				resolve(JsValue.Null);
 			}
-		});
+		}, null));
 
 		return promise;
 	}
