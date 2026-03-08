@@ -8,64 +8,16 @@ namespace MauiDevLab;
 public static class JintEngineExtensions
 {
 	// --- Core shared implementations ---
-	static JsValue ToFuncPromiseInternal<T>(Engine engine, Func<Task<T>> invokeAsync, SynchronizationContext engineContext)
+	static JsValue ToPromiseInternal(
+		Engine engine,
+		Func<Task> startTask,
+		Func<Task, JsValue> onSuccess,
+		SynchronizationContext engineContext)
 	{
-		ArgumentNullException.ThrowIfNull(engine, nameof(engine));
-		ArgumentNullException.ThrowIfNull(invokeAsync, nameof(invokeAsync));
-		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
-
-		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
-
-		Task<T> task;
-
-		try
-		{
-			task = invokeAsync();
-		}
-		catch (Exception ex)
-		{
-			engineContext.Post(_ =>
-			{
-				var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
-				reject(jsError);
-			}, null);
-			return promise;
-		}
-
-		task.ContinueWith(t => engineContext.Post(_ =>
-		{
-			try
-			{
-				if (t.IsFaulted)
-				{
-					var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
-					reject(jsError);
-				}
-				else if (t.IsCanceled)
-				{
-					var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
-					reject(jsError);
-				}
-				else
-				{
-					var result = t.Result;
-					resolve(JsValue.FromObject(engine, result));
-				}
-			}
-			finally
-			{
-				engine.Advanced.ProcessTasks();
-			}
-		}, null), TaskScheduler.Default);
-
-		return promise;
-	}
-
-	static JsValue ToActionPromiseInternal(Engine engine, Func<Task> invokeAsync, SynchronizationContext engineContext)
-	{
-		ArgumentNullException.ThrowIfNull(engine, nameof(engine));
-		ArgumentNullException.ThrowIfNull(invokeAsync, nameof(invokeAsync));
-		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
+		ArgumentNullException.ThrowIfNull(engine);
+		ArgumentNullException.ThrowIfNull(startTask);
+		ArgumentNullException.ThrowIfNull(onSuccess);
+		ArgumentNullException.ThrowIfNull(engineContext);
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
@@ -73,7 +25,7 @@ public static class JintEngineExtensions
 
 		try
 		{
-			task = invokeAsync();
+			task = startTask();
 		}
 		catch (Exception ex)
 		{
@@ -101,7 +53,7 @@ public static class JintEngineExtensions
 				}
 				else
 				{
-					resolve(JsValue.Null);
+					resolve(onSuccess(t));
 				}
 			}
 			finally
@@ -112,6 +64,18 @@ public static class JintEngineExtensions
 
 		return promise;
 	}
+
+	static JsValue ToFuncPromiseInternal<T>(
+		Engine engine,
+		Func<Task<T>> invokeAsync,
+		SynchronizationContext engineContext)
+		=> ToPromiseInternal(engine, () => invokeAsync(), t => JsValue.FromObject(engine, ((Task<T>)t).Result), engineContext);
+
+	static JsValue ToActionPromiseInternal(
+		Engine engine,
+		Func<Task> invokeAsync,
+		SynchronizationContext engineContext)
+		=> ToPromiseInternal(engine, () => invokeAsync(), _ => JsValue.Null, engineContext);
 
 	// --- Async function Promise converters ---
 	public static JsValue ToPromise<T1, TReturn>(this Engine engine, Func<T1, Task<TReturn>> asyncFunc, T1 p1, SynchronizationContext engineContext)
