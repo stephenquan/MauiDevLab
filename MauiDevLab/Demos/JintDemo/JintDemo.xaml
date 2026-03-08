@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiDevLab.JintDemo"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiDevLab"
+    Title="JintDemo"
+    x:DataType="local:JintDemo">
+    <Grid RowDefinitions="*,Auto,*">
+        <Grid Padding="30">
+            <ScrollView>
+                <Editor Text="{Binding ScriptText, Mode=TwoWay}" />
+            </ScrollView>
+        </Grid>
+        <Grid Grid.Row="1" Padding="30">
+            <Button Command="{Binding RunCommand}" Text="Run" />
+        </Grid>
+        <Grid Grid.Row="2" Padding="30">
+            <ScrollView>
+                <Editor IsReadOnly="True" Text="{Binding ResultText}" />
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>
