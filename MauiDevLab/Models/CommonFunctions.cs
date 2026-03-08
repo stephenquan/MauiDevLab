@@ -23,9 +23,9 @@ public class CommonFunctions
 
 	public async Task<string> FetchAsync(string url)
 	{
-		using var response = await HttpClientShared.GetAsync(url, ct);
+		using var response = await HttpClientShared.GetAsync(url, ct).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
-		return await response.Content.ReadAsStringAsync(ct);
+		return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 	}
 
 	public void TraceWriteLine(params object?[] args)
