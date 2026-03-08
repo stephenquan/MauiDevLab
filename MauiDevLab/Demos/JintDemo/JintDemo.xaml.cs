@@ -48,11 +48,11 @@ public partial class JintDemo : ContentPage
 			try
 			{
 				let result = await main();
-				__tcs.SetResult(result);
+				__setResult(result);
 			}
 			catch (err)
 			{
-				__tcs.SetResult("Error: " + err.message);
+				__setError(err.message);
 			}
 		})();
 		""";
@@ -74,14 +74,24 @@ public partial class JintDemo : ContentPage
 		script.AppendLine(ExecuteScriptText);
 
 		TaskCompletionSource<object?> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-		CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(60));
+		cts.Token.Register(() => tcs.TrySetCanceled());
 		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
 		JintFunctions functions = new(engine, this, cts.Token);
 		engine.SetValue("__tcs", tcs);
+		engine.SetValue("__setResult", new Action<object?>(result => tcs.TrySetResult(result)));
+		engine.SetValue("__setError", new Action<string>(error => tcs.TrySetException(new Exception(error))));
 		engine.SetValue("__functions", functions);
 		try
 		{
 			engine.Execute(script.ToString());
+		}
+		catch (Exception ex)
+		{
+			tcs.TrySetException(ex);
+		}
+		try
+		{
 			var result = await tcs.Task;
 			ResultText = result?.ToString() ?? "null";
 		}
