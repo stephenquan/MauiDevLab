@@ -40,7 +40,7 @@ public static class JintEngineExtensions
 			else
 			{
 				var result = t.Result;
-				resolve(JsValue.FromObject(engine, result);
+				resolve(JsValue.FromObject(engine, result));
 			}
 		}, null));
 
