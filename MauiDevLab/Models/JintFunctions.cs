@@ -8,15 +8,15 @@ namespace MauiDevLab;
 public class JintFunctions : CommonFunctions
 {
 	protected readonly Engine engine;
-	protected readonly SynchronizationContext engineContext;
 
-	public JintFunctions(Engine engine, SynchronizationContext engineContext, Page page, CancellationToken ct) : base(page, ct)
+	public JintFunctions(Engine engine, Page page, CancellationToken ct) : base(page, ct)
 	{
 		ArgumentNullException.ThrowIfNull(engine, nameof(engine));
-		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
 		this.engine = engine;
-		this.engineContext = engineContext;
 	}
 
-	public JsValue FetchPromiseBridge(string url) => engine.ToPromise(FetchAsync, url, engineContext);
+	public JsValue FetchPromiseBridge(string url) => engine.ToPromise(FetchAsync, url, FinalizePromiseWithDispatcher);
+
+	public void FinalizePromiseWithDispatcher(Action action)
+		=> page.Dispatcher.Dispatch(action);
 }

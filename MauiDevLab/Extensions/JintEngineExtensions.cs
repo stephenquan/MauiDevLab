@@ -12,12 +12,12 @@ public static class JintEngineExtensions
 		Engine engine,
 		Func<Task> startTask,
 		Func<Task, JsValue> onSuccess,
-		SynchronizationContext engineContext)
+		Action<Action> finalizePromise)
 	{
 		ArgumentNullException.ThrowIfNull(engine);
 		ArgumentNullException.ThrowIfNull(startTask);
 		ArgumentNullException.ThrowIfNull(onSuccess);
-		ArgumentNullException.ThrowIfNull(engineContext);
+		ArgumentNullException.ThrowIfNull(finalizePromise);
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
@@ -29,7 +29,7 @@ public static class JintEngineExtensions
 		}
 		catch (Exception ex)
 		{
-			engineContext.Post(_ =>
+			finalizePromise(() =>
 			{
 				try
 				{
@@ -40,11 +40,11 @@ public static class JintEngineExtensions
 				{
 					engine.Advanced.ProcessTasks();
 				}
-			}, null);
+			});
 			return promise;
 		}
 
-		task.ContinueWith(t => engineContext.Post(_ =>
+		task.ContinueWith(t => finalizePromise(() =>
 		{
 			try
 			{
@@ -67,7 +67,7 @@ public static class JintEngineExtensions
 			{
 				engine.Advanced.ProcessTasks();
 			}
-		}, null), TaskScheduler.Default);
+		}), TaskScheduler.Default);
 
 		return promise;
 	}
@@ -75,40 +75,40 @@ public static class JintEngineExtensions
 	static JsValue ToFuncPromiseInternal<T>(
 		Engine engine,
 		Func<Task<T>> invokeAsync,
-		SynchronizationContext engineContext)
-		=> ToPromiseInternal(engine, () => invokeAsync(), t => JsValue.FromObject(engine, ((Task<T>)t).Result), engineContext);
+		Action<Action> finalizePromise)
+		=> ToPromiseInternal(engine, () => invokeAsync(), t => JsValue.FromObject(engine, ((Task<T>)t).Result), finalizePromise);
 
 	static JsValue ToActionPromiseInternal(
 		Engine engine,
 		Func<Task> invokeAsync,
-		SynchronizationContext engineContext)
-		=> ToPromiseInternal(engine, () => invokeAsync(), _ => JsValue.Null, engineContext);
+		Action<Action> finalizePromise)
+		=> ToPromiseInternal(engine, () => invokeAsync(), _ => JsValue.Null, finalizePromise);
 
 	// --- Async function Promise converters ---
-	public static JsValue ToPromise<T1, TReturn>(this Engine engine, Func<T1, Task<TReturn>> asyncFunc, T1 p1, SynchronizationContext engineContext)
-		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1), engineContext);
-	public static JsValue ToPromise<T1, T2, TReturn>(this Engine engine, Func<T1, T2, Task<TReturn>> asyncFunc, T1 p1, T2 p2, SynchronizationContext engineContext)
-		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, TReturn>(this Engine engine, Func<T1, T2, T3, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, SynchronizationContext engineContext)
-		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, T4, TReturn>(this Engine engine, Func<T1, T2, T3, T4, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, SynchronizationContext engineContext)
-		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, T4, T5, TReturn>(this Engine engine, Func<T1, T2, T3, T4, T5, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, SynchronizationContext engineContext)
-		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, T4, T5, T6, TReturn>(this Engine engine, Func<T1, T2, T3, T4, T5, T6, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, SynchronizationContext engineContext)
-		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5, p6), engineContext);
+	public static JsValue ToPromise<T1, TReturn>(this Engine engine, Func<T1, Task<TReturn>> asyncFunc, T1 p1, Action<Action> finalizePromise)
+		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1), finalizePromise);
+	public static JsValue ToPromise<T1, T2, TReturn>(this Engine engine, Func<T1, T2, Task<TReturn>> asyncFunc, T1 p1, T2 p2, Action<Action> finalizePromise)
+		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, TReturn>(this Engine engine, Func<T1, T2, T3, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, Action<Action> finalizePromise)
+		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, T4, TReturn>(this Engine engine, Func<T1, T2, T3, T4, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, Action<Action> finalizePromise)
+		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, T4, T5, TReturn>(this Engine engine, Func<T1, T2, T3, T4, T5, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, Action<Action> finalizePromise)
+		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, T4, T5, T6, TReturn>(this Engine engine, Func<T1, T2, T3, T4, T5, T6, Task<TReturn>> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, Action<Action> finalizePromise)
+		=> ToFuncPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5, p6), finalizePromise);
 
 	// --- Async action Promise converters ---
-	public static JsValue ToPromise<T1>(this Engine engine, Func<T1, Task> asyncFunc, T1 p1, SynchronizationContext engineContext)
-		=> ToActionPromiseInternal(engine, () => asyncFunc(p1), engineContext);
-	public static JsValue ToPromise<T1, T2>(this Engine engine, Func<T1, T2, Task> asyncFunc, T1 p1, T2 p2, SynchronizationContext engineContext)
-		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2), engineContext);
-	public static JsValue ToPromise<T1, T2, T3>(this Engine engine, Func<T1, T2, T3, Task> asyncFunc, T1 p1, T2 p2, T3 p3, SynchronizationContext engineContext)
-		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, T4>(this Engine engine, Func<T1, T2, T3, T4, Task> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, SynchronizationContext engineContext)
-		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, T4, T5>(this Engine engine, Func<T1, T2, T3, T4, T5, Task> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, SynchronizationContext engineContext)
-		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5), engineContext);
-	public static JsValue ToPromise<T1, T2, T3, T4, T5, T6>(this Engine engine, Func<T1, T2, T3, T4, T5, T6, Task> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, SynchronizationContext engineContext)
-		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5, p6), engineContext);
+	public static JsValue ToPromise<T1>(this Engine engine, Func<T1, Task> asyncFunc, T1 p1, Action<Action> finalizePromise)
+		=> ToActionPromiseInternal(engine, () => asyncFunc(p1), finalizePromise);
+	public static JsValue ToPromise<T1, T2>(this Engine engine, Func<T1, T2, Task> asyncFunc, T1 p1, T2 p2, Action<Action> finalizePromise)
+		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3>(this Engine engine, Func<T1, T2, T3, Task> asyncFunc, T1 p1, T2 p2, T3 p3, Action<Action> finalizePromise)
+		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, T4>(this Engine engine, Func<T1, T2, T3, T4, Task> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, Action<Action> finalizePromise)
+		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, T4, T5>(this Engine engine, Func<T1, T2, T3, T4, T5, Task> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, Action<Action> finalizePromise)
+		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5), finalizePromise);
+	public static JsValue ToPromise<T1, T2, T3, T4, T5, T6>(this Engine engine, Func<T1, T2, T3, T4, T5, T6, Task> asyncFunc, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5, T6 p6, Action<Action> finalizePromise)
+		=> ToActionPromiseInternal(engine, () => asyncFunc(p1, p2, p3, p4, p5, p6), finalizePromise);
 }

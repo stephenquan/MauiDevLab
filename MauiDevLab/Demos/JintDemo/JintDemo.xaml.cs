@@ -79,7 +79,7 @@ public partial class JintDemo : ContentPage
 		var engineContext = SynchronizationContext.Current;
 		ArgumentNullException.ThrowIfNull(engineContext, nameof(engineContext));
 		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
-		JintFunctions functions = new(engine, engineContext, this, cts.Token);
+		JintFunctions functions = new(engine, this, cts.Token);
 		engine.SetValue("__setResult", new Action<object?>(result => tcs.TrySetResult(result)));
 		engine.SetValue("__setError", new Action<string>(error => tcs.TrySetException(new Exception(error))));
 		engine.SetValue("__functions", functions);
