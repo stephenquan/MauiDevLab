@@ -7,30 +7,14 @@ namespace MauiDevLab;
 
 public static class JintEngineExtensions
 {
-	public static void RejectWithMessage(
-		Engine engine,
-		Action<JsValue> reject,
-		string message)
-	{
-		var jsError = engine.Intrinsics.Error.Construct(message);
-		reject(jsError);
-	}
+	public static void RejectWithMessage(Engine engine, Action<JsValue> reject, string message)
+		=> reject(engine.Intrinsics.Error.Construct(message));
 
-	public static void RejectWithException(
-		Engine engine,
-		Action<JsValue> reject,
-		Exception? ex)
-	{
-		var message = ex?.GetBaseException().Message ?? "Unknown error";
-		RejectWithMessage(engine, reject, message);
-	}
+	public static void RejectWithException(Engine engine, Action<JsValue> reject, Exception? ex)
+		=> RejectWithMessage(engine, reject, ex?.GetBaseException().Message ?? "Unknown error");
 
 	// --- Core shared implementations ---
-	static JsValue ToPromiseInternal(
-		Engine engine,
-		Func<Task> startTask,
-		Func<Task, JsValue> onSuccess,
-		Action<Action> finalizePromise)
+	static JsValue ToPromiseInternal(Engine engine, Func<Task> startTask, Func<Task, JsValue> onSuccess, Action<Action> finalizePromise)
 	{
 		ArgumentNullException.ThrowIfNull(engine);
 		ArgumentNullException.ThrowIfNull(startTask);
@@ -89,16 +73,10 @@ public static class JintEngineExtensions
 		return promise;
 	}
 
-	static JsValue ToFuncPromiseInternal<T>(
-		Engine engine,
-		Func<Task<T>> invokeAsync,
-		Action<Action> finalizePromise)
+	static JsValue ToFuncPromiseInternal<T>(Engine engine, Func<Task<T>> invokeAsync, Action<Action> finalizePromise)
 		=> ToPromiseInternal(engine, () => invokeAsync(), t => JsValue.FromObject(engine, ((Task<T>)t).Result), finalizePromise);
 
-	static JsValue ToActionPromiseInternal(
-		Engine engine,
-		Func<Task> invokeAsync,
-		Action<Action> finalizePromise)
+	static JsValue ToActionPromiseInternal(Engine engine, Func<Task> invokeAsync, Action<Action> finalizePromise)
 		=> ToPromiseInternal(engine, () => invokeAsync(), _ => JsValue.Null, finalizePromise);
 
 	// --- Async function Promise converters ---
