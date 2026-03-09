@@ -29,19 +29,18 @@ public static class JintEngineExtensions
 		}
 		catch (Exception ex)
 		{
-			try
+			engineContext.Post(_ =>
 			{
-				engineContext.Post(_ =>
+				try
 				{
 					var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
 					reject(jsError);
-				}, null);
-			}
-			finally
-			{
-				engine.Advanced.ProcessTasks();
-
-			}
+				}
+				finally
+				{
+					engine.Advanced.ProcessTasks();
+				}
+			}, null);
 			return promise;
 		}
 
