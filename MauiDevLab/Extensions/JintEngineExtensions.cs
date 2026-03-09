@@ -7,6 +7,24 @@ namespace MauiDevLab;
 
 public static class JintEngineExtensions
 {
+	public static void RejectWithMessage(
+		Engine engine,
+		Action<JsValue> reject,
+		string message)
+	{
+		var jsError = engine.Intrinsics.Error.Construct(message);
+		reject(jsError);
+	}
+
+	public static void RejectWithException(
+		Engine engine,
+		Action<JsValue> reject,
+		Exception? ex)
+	{
+		var message = ex?.GetBaseException().Message ?? "Unknown error";
+		RejectWithMessage(engine, reject, message);
+	}
+
 	// --- Core shared implementations ---
 	static JsValue ToPromiseInternal(
 		Engine engine,
@@ -21,6 +39,15 @@ public static class JintEngineExtensions
 
 		var (promise, resolve, reject) = engine.Advanced.RegisterPromise();
 
+		void FinalizeWithTasks(Action action)
+		{
+			finalizePromise(() =>
+			{
+				try { action(); }
+				finally { engine.Advanced.ProcessTasks(); }
+			});
+		}
+
 		Task task;
 
 		try
@@ -29,43 +56,33 @@ public static class JintEngineExtensions
 		}
 		catch (Exception ex)
 		{
-			finalizePromise(() =>
-			{
-				try
-				{
-					var jsError = engine.Intrinsics.Error.Construct(ex.GetBaseException().Message ?? "Unknown error");
-					reject(jsError);
-				}
-				finally
-				{
-					engine.Advanced.ProcessTasks();
-				}
-			});
+			FinalizeWithTasks(() => RejectWithException(engine, reject, ex));
 			return promise;
 		}
 
-		task.ContinueWith(t => finalizePromise(() =>
+		_ = task.ContinueWith(t => FinalizeWithTasks(() =>
 		{
-			try
+			if (t.IsFaulted)
 			{
-				if (t.IsFaulted)
-				{
-					var jsError = engine.Intrinsics.Error.Construct(t.Exception?.GetBaseException().Message ?? "Unknown error");
-					reject(jsError);
-				}
-				else if (t.IsCanceled)
-				{
-					var jsError = engine.Intrinsics.Error.Construct("Operation canceled");
-					reject(jsError);
-				}
-				else
-				{
-					resolve(onSuccess(t));
-				}
+				RejectWithException(engine, reject, t.Exception);
 			}
-			finally
+			else if (t.IsCanceled)
 			{
-				engine.Advanced.ProcessTasks();
+				RejectWithMessage(engine, reject, "Operation canceled");
+			}
+			else
+			{
+				JsValue result;
+				try
+				{
+					result = onSuccess(t);
+				}
+				catch (Exception ex)
+				{
+					RejectWithException(engine, reject, ex);
+					return;
+				}
+				resolve(result);
 			}
 		}), TaskScheduler.Default);
 
