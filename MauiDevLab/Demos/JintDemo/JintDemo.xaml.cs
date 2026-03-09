@@ -17,7 +17,14 @@ public partial class JintDemo : ContentPage
 			let b = 4;
 			console.log("Add 3 and 4: ", Add(a,b));
 			var h = Add(a,b);
-			var json = await FetchAsync("https://www.arcgis.com/sharing/rest/info?f=pjson");
+			console.log("new XHR");
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				console.log("Ready state changed: ", xhr.readyState);
+			};
+			xhr.open("GET", "https://www.arcgis.com/sharing/rest/info?f=pjson");
+			xhr.send();
+			var json = xhr.responseText;
 			console.log("Fetched JSON: ", json);
 			var obj = JSON.parse(json);
 			console.log("Owning System Url: ", obj.owningSystemUrl);
@@ -34,12 +41,47 @@ public partial class JintDemo : ContentPage
 			Add : Add,
 			FetchPromiseBridge : FetchAsync,
 			TraceWriteLine : TraceWriteLine,
+			NewXHR : NewXHR,
 		} = __functions;
 
 		const console = {
 			log: (...args) => TraceWriteLine(...args),
 			error: (...args) => TraceWriteLine("ERROR:", ...args)
 		};
+
+		class XMLHttpRequest {
+			constructor() {
+				this._xhr = NewXHR();
+				this._method = "GET";
+				this._url = "";
+				this._isAsync = true;
+				this.readyState = XMLHttpRequest.UNSENT;
+				this.onreadystatechange = null;
+			}
+			open(method, url, isAsync = true) {
+				this._method = method;
+				this._url = url;
+				this._isAsync = isAsync;
+				this._xhr.Open(method, url, isAsync);
+				this.readyState = XMLHttpRequest.OPENED;
+				if (this.onreadystatechange) this.onreadystatechange();
+			}
+			send(body = null) {
+				this._xhr.Send(body);
+				this.readyState = XMLHttpRequest.HEADERS_RECEIVED;
+				if (this.onreadystatechange) this.onreadystatechange();
+				this.readyState = XMLHttpRequest.DONE;
+				if (this.onreadystatechange) this.onreadystatechange();
+			}
+			get responseText() { return this._xhr.ResponseText; }
+			get status() { return this._xhr.StatusCode; }
+		}
+
+		XMLHttpRequest.UNSENT = 0;
+		XMLHttpRequest.OPENED = 1;
+		XMLHttpRequest.HEADERS_RECEIVED = 2;
+		XMLHttpRequest.LOADING = 3;
+		XMLHttpRequest.DONE = 4;
 		""";
 
 	public string ExecuteScriptText
