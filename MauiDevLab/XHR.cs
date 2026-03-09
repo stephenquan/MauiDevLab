@@ -10,19 +10,19 @@ public class XHR
 {
 	Engine engine;
 	Page page;
+	CancellationToken ct;
 	string method = "GET";
 	string url = string.Empty;
 	bool isAsync = true;
 
-	public static HttpClient HttpClientShared { get; } = new();
-
 	public string ResponseText { get; set; } = string.Empty;
 	public HttpStatusCode StatusCode { get; set; } = 0;
 
-	public XHR(Engine engine, Page page)
+	public XHR(Engine engine, Page page, CancellationToken ct)
 	{
 		this.engine = engine;
 		this.page = page;
+		this.ct = ct;
 	}
 
 	public void Open(string method, string url, bool isAsync)
@@ -36,10 +36,14 @@ public class XHR
 	{
 		StatusCode = 0;
 		ResponseText = string.Empty;
-		using var response = await HttpClientShared.GetAsync(this.url).ConfigureAwait(false);
-		response.EnsureSuccessStatusCode();
+		using var response = this.method switch
+		{
+			"POST" => await HttpClientHelper.HttpClientShared.PostAsync(this.url, new StringContent(body ?? string.Empty), ct).ConfigureAwait(false),
+			_ => await HttpClientHelper.HttpClientShared.GetAsync(this.url, ct).ConfigureAwait(false),
+		};
 		ResponseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 		StatusCode = response.StatusCode;
+		response.EnsureSuccessStatusCode();
 	}
 
 	public void Send(string? body)
@@ -51,5 +55,10 @@ public class XHR
 		=> engine.ToPromise(SendAsync, body, FinalizePromiseWithDispatcher);
 
 	public void FinalizePromiseWithDispatcher(Action action)
-		=> page.Dispatcher.Dispatch(action);
+	{
+		if (!page.Dispatcher.Dispatch(action))
+		{
+			action();
+		}
+	}
 }

@@ -19,11 +19,9 @@ public class CommonFunctions
 		return x + y;
 	}
 
-	public static HttpClient HttpClientShared { get; } = new();
-
 	public async Task<string> FetchAsync(string url)
 	{
-		using var response = await HttpClientShared.GetAsync(url, ct).ConfigureAwait(false);
+		using var response = await HttpClientHelper.HttpClientShared.GetAsync(url, ct).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
 		return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 	}

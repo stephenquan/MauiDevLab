@@ -15,10 +15,15 @@ public class JintFunctions : CommonFunctions
 		this.engine = engine;
 	}
 
-	public XHR NewXHR() => new(engine, page);
+	public XHR NewXHR() => new(engine, page, ct);
 
 	public JsValue FetchPromiseBridge(string url) => engine.ToPromise(FetchAsync, url, FinalizePromiseWithDispatcher);
 
 	public void FinalizePromiseWithDispatcher(Action action)
-		=> page.Dispatcher.Dispatch(action);
+	{
+		if (!page.Dispatcher.Dispatch(action))
+		{
+			action();
+		}
+	}
 }

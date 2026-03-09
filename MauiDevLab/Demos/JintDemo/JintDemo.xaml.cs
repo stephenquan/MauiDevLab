@@ -12,18 +12,22 @@ public partial class JintDemo : ContentPage
 	[BindableProperty]
 	public partial string ScriptText { get; set; }
 		= $$"""
+		async function fetch(url) {
+			return new Promise((resolve, reject) => {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", url, true);
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState === XMLHttpRequest.DONE) {
+						resolve(xhr);
+					}
+				};
+				xhr.send();
+			});
+		}
+
 		async function main() {
-			let a = 3;
-			let b = 4;
-			console.log("Add 3 and 4: ", Add(a,b));
-			var h = Add(a,b);
-			console.log("new XHR");
-			var xhr = new XMLHttpRequest();
-			xhr.onreadystatechange = function() {
-				console.log("Ready state changed: ", xhr.readyState);
-			};
-			xhr.open("GET", "https://www.arcgis.com/sharing/rest/info?f=pjson");
-			xhr.send();
+			console.log("Add 3 and 4: ", Add(3,4));
+			var xhr = await fetch("https://www.arcgis.com/sharing/rest/info?f=pjson");
 			var json = xhr.responseText;
 			console.log("Fetched JSON: ", json);
 			var obj = JSON.parse(json);
@@ -67,7 +71,17 @@ public partial class JintDemo : ContentPage
 				if (this.onreadystatechange) this.onreadystatechange();
 			}
 			send(body = null) {
-				this._xhr.Send(body);
+				if (this._isAsync)
+				{
+					this._xhr.SendPromiseBridge(body).then(() => this.postSend());
+				}
+				else
+				{
+					this._xhr.Send(body);
+					this.postSend();
+				}
+			}
+			postSend() {
 				this.readyState = XMLHttpRequest.HEADERS_RECEIVED;
 				if (this.onreadystatechange) this.onreadystatechange();
 				this.readyState = XMLHttpRequest.DONE;
@@ -116,7 +130,7 @@ public partial class JintDemo : ContentPage
 		script.AppendLine(ExecuteScriptText);
 
 		TaskCompletionSource<object?> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(60));
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
 		cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
 		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
 		JintFunctions functions = new(engine, this, cts.Token);

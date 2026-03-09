@@ -6,19 +6,24 @@
     xmlns:local="clr-namespace:MauiDevLab"
     Title="Jint Demo"
     x:DataType="local:JintDemo">
-    <Grid RowDefinitions="*,Auto,*">
-        <Grid Padding="30">
-            <ScrollView>
-                <Editor Text="{Binding ScriptText, Mode=TwoWay}" />
-            </ScrollView>
-        </Grid>
-        <Grid Grid.Row="1" Padding="30">
+    <Grid RowDefinitions="Auto,*">
+        <Grid Padding="30,5">
             <Button Command="{Binding RunCommand}" Text="Run" />
         </Grid>
-        <Grid Grid.Row="2" Padding="30">
-            <ScrollView>
-                <Editor IsReadOnly="True" Text="{Binding ResultText}" />
-            </ScrollView>
+        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+            <Grid Padding="30,5">
+                <ScrollView>
+                    <Editor AutoSize="TextChanges" Text="{Binding ScriptText, Mode=TwoWay}" />
+                </ScrollView>
+            </Grid>
+            <Grid Grid.Column="1" Padding="30,5">
+                <ScrollView>
+                    <Editor
+                        AutoSize="TextChanges"
+                        IsReadOnly="True"
+                        Text="{Binding ResultText}" />
+                </ScrollView>
+            </Grid>
         </Grid>
     </Grid>
 </ContentPage>
