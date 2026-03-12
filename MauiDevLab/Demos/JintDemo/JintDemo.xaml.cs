@@ -1,6 +1,5 @@
 // JintDemo.xaml.cs
 
-using System.Text;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.Input;
 using Jint;
@@ -178,12 +177,6 @@ public partial class JintDemo : ContentPage
 	public async Task RunNew()
 	{
 		ResultText = string.Empty;
-
-		StringBuilder script = new();
-		script.AppendLine(InitialScriptText);
-		script.AppendLine(ScriptText);
-		script.AppendLine(ExecuteScriptText);
-
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
 		//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
 		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
