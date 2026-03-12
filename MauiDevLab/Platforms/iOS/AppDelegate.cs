@@ -1,10 +1,11 @@
-﻿using Foundation;
+﻿// AppDelegate.cs
 
-namespace MauiDevLab
+using Foundation;
+
+namespace MauiDevLab;
+
+[Register("AppDelegate")]
+public class AppDelegate : MauiUIApplicationDelegate
 {
-    [Register("AppDelegate")]
-    public class AppDelegate : MauiUIApplicationDelegate
-    {
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
-    }
+	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 }

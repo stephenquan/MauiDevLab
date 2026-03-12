@@ -30,6 +30,7 @@ public static class MauiProgram
 			.RegisterDemo("VerticalStackLayout Demo (Slow)", nameof(VerticalStackLayoutDemo), typeof(VerticalStackLayoutDemo))
 			.RegisterDemo("VerticalStackList Demo (Fast)", nameof(VerticalScrollStackDemo), typeof(VerticalScrollStackDemo))
 			.RegisterDemo("Localize Demo", nameof(LocalizeDemo), typeof(LocalizeDemo))
+			.RegisterDemo("Jint Demo", nameof(JintDemo), typeof(JintDemo))
 			;
 
 #if DEBUG
