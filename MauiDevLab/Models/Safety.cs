@@ -73,7 +73,7 @@ public static class Safety
 	public static void InvokeAction<T1, T2, T3>(Action<T1, T2, T3> action, T1 p1, T2 p2, T3 p3,
 		[CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
 		=> InvokeActionInternal(() => action(p1, p2, p3), memberName, filePath, lineNumber);
-	public static void InvokInvokeActioneActionSafely<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, T1 p1, T2 p2, T3 p3, T4 p4,
+	public static void InvokeAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, T1 p1, T2 p2, T3 p3, T4 p4,
 		[CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
 		=> InvokeActionInternal(() => action(p1, p2, p3, p4), memberName, filePath, lineNumber);
 	public static void InvokeAction<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> action, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5,
