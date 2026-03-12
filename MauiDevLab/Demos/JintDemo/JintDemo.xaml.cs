@@ -12,27 +12,41 @@ public partial class JintDemo : ContentPage
 	[BindableProperty]
 	public partial string ScriptText { get; set; }
 		= $$"""
-		async function fetch(url) {
+		function fetch(url, options = null) {
 			return new Promise((resolve, reject) => {
 				var xhr = new XMLHttpRequest();
-				xhr.open("GET", url, true);
+				xhr.responseType = "json";
+				xhr.open(options?.method ?? "GET", url, true);
+				xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+				if (options.headers && typeof options.headers === "object") {
+					for (const [key, value] of Object.entries(options.headers)) {
+						xhr.setRequestHeader(key, value);
+					}
+				}
 				xhr.onreadystatechange = function() {
 					if (xhr.readyState === XMLHttpRequest.DONE) {
 						resolve(xhr);
 					}
 				};
-				xhr.send();
+				xhr.onerror = function(err) {
+					reject(err);
+				};
+				xhr.send(options?.body ?? null);
 			});
 		}
 
 		async function main() {
-			console.log("Add 3 and 4: ", Add(3,4));
-			var xhr = await fetch("https://www.arcgis.com/sharing/rest/info?f=pjson");
+			let result = "";
+			result += `Add 3 and 4: ${ Add(3,4) }\n`;
+			var xhr = await fetch("https://www.arcgis.com/sharing/rest/info", {
+				method: "POST",
+				body: "f=pjson"
+			});
 			var json = xhr.responseText;
-			console.log("Fetched JSON: ", json);
-			var obj = JSON.parse(json);
-			console.log("Owning System Url: ", obj.owningSystemUrl);
-			return json;
+			result += `Fetched JSON: \n${json}\n`;
+			var obj = xhr.response;
+			result += `Owning System Url: ${obj.owningSystemUrl}\n`;
+			return result;
 		}
 		""";
 
@@ -59,35 +73,40 @@ public partial class JintDemo : ContentPage
 				this._method = "GET";
 				this._url = "";
 				this._isAsync = true;
-				this.readyState = XMLHttpRequest.UNSENT;
-				this.onreadystatechange = null;
+				this._error = null;
 			}
 			open(method, url, isAsync = true) {
 				this._method = method;
 				this._url = url;
 				this._isAsync = isAsync;
 				this._xhr.Open(method, url, isAsync);
-				this.readyState = XMLHttpRequest.OPENED;
-				if (this.onreadystatechange) this.onreadystatechange();
+			}
+			setRequestHeader(header, value) {
+				this._xhr.SetRequestHeader(header, value);
 			}
 			send(body = null) {
-				if (this._isAsync)
-				{
-					this._xhr.SendPromiseBridge(body).then(() => this.postSend());
-				}
-				else
-				{
-					this._xhr.Send(body);
-					this.postSend();
+				if (this._isAsync) {
+					this._xhr.SendPromiseBridge(body);
+				} else {
+					this._xhr.SendSync(body);
 				}
 			}
-			postSend() {
-				this.readyState = XMLHttpRequest.HEADERS_RECEIVED;
-				if (this.onreadystatechange) this.onreadystatechange();
-				this.readyState = XMLHttpRequest.DONE;
-				if (this.onreadystatechange) this.onreadystatechange();
+			get onreadystatechange() { return this._xhr.OnReadyStateChange; }
+			set onreadystatechange(value) { this._xhr.OnReadyStateChange = value; }
+			get onerror() { return this._xhr.OnError; }
+			set onerror(value) { this._xhr.OnError = value; }
+			get readyState() { return this._xhr.ReadyState; }
+			get response()
+			{
+				if (this._xhr.ResponseType == "json")
+				{
+					return JSON.parse(this._xhr.ResponseText);
+				}
+				return this._xhr.ResponseText;
 			}
 			get responseText() { return this._xhr.ResponseText; }
+			get responseType() { return this._xhr.ResponseType; }
+			set responseType(value) { this._xhr.ResponseType = value; }
 			get status() { return this._xhr.StatusCode; }
 		}
 
@@ -123,32 +142,51 @@ public partial class JintDemo : ContentPage
 	public async Task Run()
 	{
 		ResultText = string.Empty;
+		var result = await Task.Run(() =>
+		{
+			try
+			{
+				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
+				//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
+				Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
+				JintFunctions functions = new(engine, this, cts.Token);
+				engine.SetValue("__functions", functions);
+				engine.Execute(InitialScriptText);
+				engine.Execute(ScriptText);
+				var result = engine.Evaluate("(async () => await main())();");
+				result = result.UnwrapIfPromise();
+				return result;
+			}
+			catch (Exception ex)
+			{
+				return "Error: " + ex.Message;
+			}
+		});
+		ResultText = result.ToString();
+	}
+
+	[RelayCommand]
+	public async Task RunNew()
+	{
+		ResultText = string.Empty;
 
 		StringBuilder script = new();
 		script.AppendLine(InitialScriptText);
 		script.AppendLine(ScriptText);
 		script.AppendLine(ExecuteScriptText);
 
-		TaskCompletionSource<object?> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
-		cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
+		//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
 		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
 		JintFunctions functions = new(engine, this, cts.Token);
-		engine.SetValue("__setResult", new Action<object?>(result => tcs.TrySetResult(result)));
-		engine.SetValue("__setError", new Action<string>(error => tcs.TrySetException(new Exception(error))));
 		engine.SetValue("__functions", functions);
+		engine.Execute(InitialScriptText);
+		engine.Execute(ScriptText);
 		try
 		{
-			engine.Execute(script.ToString());
-		}
-		catch (Exception ex)
-		{
-			tcs.TrySetException(ex);
-		}
-		try
-		{
-			var result = await tcs.Task;
+			var result = await engine.InvokeAsync<object?>("main");
 			ResultText = result?.ToString() ?? "null";
+			System.Diagnostics.Trace.WriteLine($"Result from main(): {result}");
 		}
 		catch (Exception ex)
 		{

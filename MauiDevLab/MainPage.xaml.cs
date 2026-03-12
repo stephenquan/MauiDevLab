@@ -20,3 +20,4 @@ public partial class MainPage : ContentPage
 	async void OnStartDemo(object sender, EventArgs e)
 		=> await Shell.Current.GoToAsync((((Button)sender).Text.GetDemoRoute()));
 }
+

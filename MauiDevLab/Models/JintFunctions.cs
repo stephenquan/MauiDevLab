@@ -17,7 +17,7 @@ public class JintFunctions : CommonFunctions
 
 	public XHR NewXHR() => new(engine, page, ct);
 
-	public JsValue FetchPromiseBridge(string url) => engine.ToPromise(FetchAsync, url, FinalizePromiseWithDispatcher);
+	public JsValue FetchPromiseBridge(string url) => engine.ToFuncPromise(FetchAsync, url, FinalizePromiseWithDispatcher);
 
 	public void FinalizePromiseWithDispatcher(Action action)
 	{

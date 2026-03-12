@@ -134,8 +134,4 @@
 			<LastGenOutput>AppStrings.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Behaviors\" />
-	</ItemGroup>
 </Project>

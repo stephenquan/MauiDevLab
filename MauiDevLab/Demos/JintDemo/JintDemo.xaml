@@ -7,8 +7,15 @@
     Title="Jint Demo"
     x:DataType="local:JintDemo">
     <Grid RowDefinitions="Auto,*">
-        <Grid Padding="30,5">
+        <Grid
+            Padding="30,5"
+            ColumnDefinitions="*,*"
+            ColumnSpacing="20">
             <Button Command="{Binding RunCommand}" Text="Run" />
+            <Button
+                Grid.Column="1"
+                Command="{Binding RunNewCommand}"
+                Text="Run (New)" />
         </Grid>
         <Grid Grid.Row="1" ColumnDefinitions="*,*">
             <Grid Padding="30,5">
