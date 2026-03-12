@@ -142,17 +142,17 @@ public partial class JintDemo : ContentPage
 	public async Task Run()
 	{
 		ResultText = string.Empty;
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
+		//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
+		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
+		JintFunctions functions = new(engine, this, cts.Token);
+		engine.SetValue("__functions", functions);
+		engine.Execute(InitialScriptText);
+		engine.Execute(ScriptText);
 		var result = await Task.Run(() =>
 		{
 			try
 			{
-				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
-				//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
-				Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
-				JintFunctions functions = new(engine, this, cts.Token);
-				engine.SetValue("__functions", functions);
-				engine.Execute(InitialScriptText);
-				engine.Execute(ScriptText);
 				var result = engine.Evaluate("(async () => await main())();");
 				result = result.UnwrapIfPromise();
 				return result;
@@ -162,7 +162,7 @@ public partial class JintDemo : ContentPage
 				return "Error: " + ex.Message;
 			}
 		});
-		ResultText = result.ToString();
+		ResultText = result?.ToString() ?? string.Empty;
 	}
 
 	[RelayCommand]

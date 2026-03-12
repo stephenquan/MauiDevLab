@@ -42,7 +42,7 @@ public class XHR
 		ResponseText = string.Empty;
 		ReadyState = ReadyStateEnum.UNSENT;
 		mediaType = defaultMediaType;
-		OnReadyStateChange?.Invoke();
+		FinalizePromiseWithDispatcher(() => OnReadyStateChange?.Invoke());
 	}
 
 	public void Open(string method, string url, bool isasync = true)
@@ -50,7 +50,7 @@ public class XHR
 		Reset();
 		request = new HttpRequestMessage(new HttpMethod(method), url);
 		ReadyState = ReadyStateEnum.OPENED;
-		OnReadyStateChange?.Invoke();
+		FinalizePromiseWithDispatcher(() => OnReadyStateChange?.Invoke());
 	}
 
 	public void SetRequestHeader(string header, string value)
