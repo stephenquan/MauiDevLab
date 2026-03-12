@@ -55,7 +55,11 @@ public class XHR
 
 	public void SetRequestHeader(string header, string value)
 	{
-		ArgumentNullException.ThrowIfNull(request, "Request not initialized. Call Open() first.");
+		if (request is null)
+		{
+			throw new InvalidOperationException("Request not initialized. Call Open() first.");
+		}
+
 		request.Headers.TryAddWithoutValidation(header, value);
 		if (header.Equals("Content-Type", StringComparison.OrdinalIgnoreCase))
 		{
