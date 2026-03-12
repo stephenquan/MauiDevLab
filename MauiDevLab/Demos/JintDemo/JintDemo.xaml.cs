@@ -4,6 +4,7 @@ using System.Text;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.Input;
 using Jint;
+using Jint.Native;
 
 namespace MauiDevLab;
 
@@ -143,19 +144,27 @@ public partial class JintDemo : ContentPage
 	{
 		ResultText = string.Empty;
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
-		//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
-		Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
-		JintFunctions functions = new(engine, this, cts.Token);
-		engine.SetValue("__functions", functions);
-		engine.Execute(InitialScriptText);
-		engine.Execute(ScriptText);
-		var result = await Task.Run(() =>
+		JsValue? result = null;
+		try
+		{
+			//cts.Token.Register(() => tcs.TrySetCanceled(cts.Token));
+			Jint.Engine engine = new(options => options.CancellationToken(cts.Token));
+			JintFunctions functions = new(engine, this, cts.Token);
+			engine.SetValue("__functions", functions);
+			engine.Execute(InitialScriptText);
+			engine.Execute(ScriptText);
+			result = engine.Evaluate("(async () => await main())();");
+		}
+		catch (Exception ex)
+		{
+			ResultText = "Error: " + ex.Message;
+			return;
+		}
+		result = await Task.Run(() =>
 		{
 			try
 			{
-				var result = engine.Evaluate("(async () => await main())();");
-				result = result.UnwrapIfPromise();
-				return result;
+				return result.UnwrapIfPromise();
 			}
 			catch (Exception ex)
 			{
