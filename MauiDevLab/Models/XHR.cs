@@ -65,7 +65,10 @@ public class XHR
 
 	public async Task SendAsync(string? body)
 	{
-		ArgumentNullException.ThrowIfNull(request, "Request not initialized. Call Open() first.");
+		if (request is null)
+		{
+			throw new InvalidOperationException("Request not initialized. Call Open() first.");
+		}
 
 		try
 		{
