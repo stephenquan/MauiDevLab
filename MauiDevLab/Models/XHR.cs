@@ -80,18 +80,13 @@ public class XHR
 			{
 				request.Content = new StringContent(body, Encoding.UTF8, mediaType);
 			}
-
-			using var response = await HttpClientHelper.HttpClientShared
-				.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
-				.ConfigureAwait(false);
+			using var response = await HttpClientHelper.HttpClientShared.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
 			StatusCode = (int)response.StatusCode;
 			ReadyState = ReadyStateEnum.HEADERS_RECEIVED;
 			OnReadyStateChange?.Invoke();
 			ReadyState = ReadyStateEnum.LOADING;
 			OnReadyStateChange?.Invoke();
-			ResponseText = await response.Content
-				.ReadAsStringAsync(ct)
-				.ConfigureAwait(false);
+			ResponseText = await response.Content.ReadAsStringAsync(ct);
 			request?.Dispose();
 			request = null;
 			ReadyState = ReadyStateEnum.DONE;
@@ -103,9 +98,9 @@ public class XHR
 			request?.Dispose();
 			request = null;
 			var error = engine.NewErrorFromException(ex);
-			FinalizePromiseWithDispatcher(() => OnError?.Invoke(error));
+			OnError?.Invoke(error);
 			ReadyState = ReadyStateEnum.DONE;
-			FinalizePromiseWithDispatcher(() => OnReadyStateChange?.Invoke());
+			OnReadyStateChange?.Invoke();
 			throw;
 		}
 	}
