@@ -107,7 +107,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="Entry">
+    <Style x:Key="BaseEntry" TargetType="Entry">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular" />
@@ -127,6 +127,29 @@
                 </VisualStateGroup>
             </VisualStateGroupList>
         </Setter>
+    </Style>
+
+    <Style BasedOn="{StaticResource BaseEntry}" TargetType="Entry" />
+
+    <Style
+        x:Key="FormInput"
+        BasedOn="{StaticResource BaseEntry}"
+        TargetType="Entry">
+        <Style.Triggers>
+            <DataTrigger
+                Binding="{Binding IsReadOnly, x:DataType='Entry', Source={RelativeSource Self}}"
+                TargetType="Entry"
+                Value="True">
+                <Setter Property="BackgroundColor" Value="LightGray" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="FormNote"
+        BasedOn="{StaticResource FormInput}"
+        TargetType="Entry">
+        <Setter Property="IsReadOnly" Value="True" />
     </Style>
 
     <Style TargetType="ImageButton">
@@ -452,14 +475,17 @@
         x:Key="FormLabel"
         BasedOn="{StaticResource BaseFormLabel}"
         TargetType="Label">
-        <!--    -->
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontAttributes" Value="Bold" />
     </Style>
 
     <Style
         x:Key="FormHint"
         BasedOn="{StaticResource FormLabel}"
         TargetType="Label">
-        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Italic" />
+        <Setter Property="TextColor" Value="Green" />
     </Style>
 
 </ResourceDictionary>

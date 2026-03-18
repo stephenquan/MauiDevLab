@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiDevLab.ExpressionDemo"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiDevLab"
+    x:Name="demo"
+    Title="Expression Demo"
+    x:DataType="local:ExpressionDemo">
+    <!--<ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="25">
+            <Label Text="Enter value for x1" />
+            <Entry Style="{StaticResource FormInput}" Text="{Binding EM[/survey/x1], Mode=TwoWay}" />
+            <Label Text="Enter value for x2" />
+            <Entry Style="{StaticResource FormInput}" Text="{Binding EM[/survey/x2], Mode=TwoWay}" />
+            <Label Text="Sum" />
+            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/sum], Mode=OneWay}" />
+            <Label Text="Product" />
+            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/product], Mode=OneWay}" />
+            <Label Text="Hypotenuse" />
+            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/hypotenuse], Mode=OneWay}" />
+            <Label Text="Random" />
+            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/random], Mode=OneWay}" />
+            <Button
+                Command="{Binding EM.RecalculateByNodeRefCommand}"
+                CommandParameter="/survey/random"
+                Text="Recalculate" />
+        </VerticalStackLayout>
+    </ScrollView>-->
+    <CollectionView ItemsSource="{Binding FormControls}">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="local:FormControlInfo">
+                <Grid Padding="5">
+                    <VerticalStackLayout Padding="5" Spacing="5">
+                        <Label Style="{StaticResource FormLabel}" Text="{Binding Label}" />
+                        <Label Style="{StaticResource FormHint}" Text="{Binding Hint}" />
+                        <!--<Entry
+                            x:Name="entry"
+                            Style="{Binding Style, Converter={x:Static local:ExpressionDemo.StyleConverter}, FallbackValue={x:StaticResource FormInput}}"
+                            Text="{local:Bind Path={Binding NodeRef,
+                                                            StringFormat='EM[{0}]'},
+                                              Mode={Binding Mode},
+                                              Source={Reference demo}}" />-->
+                        <!--<Entry
+                            x:Name="entry"
+                            Style="{Binding Style, Converter={x:Static local:ExpressionDemo.StyleConverter}, FallbackValue={x:StaticResource FormInput}}"
+                            Text="{Binding Node.ExternalValue, Mode=TwoWay}" />-->
+                        <ContentView ControlTemplate="{Binding ControlTemplate}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>

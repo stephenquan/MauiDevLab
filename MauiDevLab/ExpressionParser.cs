@@ -1,0 +1,315 @@
+﻿// ExpressionParser.cs
+
+using System.Globalization;
+using System.Text.RegularExpressions;
+
+namespace MauiDevLab;
+
+public partial class ExpressionParser
+{
+	public readonly List<ExpressionToken> Tokens = new();
+	public bool IsValid { get; private set; } = false;
+
+	ExpressionParserPlugin plugin;
+
+	string key = string.Empty;
+	string expression = string.Empty;
+	int index = 0;
+	Match? match;
+
+	public ExpressionParser(ExpressionParserPlugin plugin)
+	{
+		this.plugin = plugin;
+	}
+
+	#region TryParse(string key, string expression)
+	public bool TryParse(string key, string expression)
+	{
+		this.key = key;
+		this.expression = expression;
+		this.index = 0;
+		this.Tokens.Clear();
+
+		IsValid = TryParseExpr();
+		SkipWhitespace();
+		IsValid &= (index == expression.Length);
+		return IsValid;
+	}
+	#endregion
+
+	#region SkipWhitespace()
+	void SkipWhitespace()
+	{
+		while (index < expression.Length && char.IsWhiteSpace(expression[index]))
+		{
+			index++;
+		}
+	}
+	#endregion
+
+	#region TryParseNegatablePrimary()
+	bool TryParseNegatablePrimary()
+	{
+		int _index = index;
+		bool negated = false;
+		while (TryParseMatch(plugin.NegateRegex))
+		{
+			negated = !negated;
+		}
+		if (!TryParsePrimary())
+		{
+			index = _index;
+			return false;
+		}
+		if (negated)
+		{
+			string negateOp = "negate";
+			if (!plugin.Functions.TryGetValue(negateOp, out var functionInfo)
+				|| functionInfo is null
+				|| !functionInfo.AritySpec.IsOne)
+			{
+				index = _index;
+				return false;
+			}
+			if (functionInfo.IsDeterministic
+				&& Tokens.Count >= 1
+				&& Tokens.Last() is ExpressionToken lastToken
+				&& lastToken.TokenType == ExpressionTokenType.Constant)
+			{
+				var value = functionInfo.Function(new object?[] { lastToken.Value });
+				Tokens.RemoveAt(Tokens.Count - 1);
+				Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
+				return true;
+			}
+			Tokens.Add(new ExpressionToken(ExpressionTokenType.Operator, negateOp, null, functionInfo, 1));
+			return true;
+		}
+		return true;
+	}
+	#endregion
+
+	#region TryParsePrimary()
+	bool TryParsePrimary()
+	{
+		SkipWhitespace();
+		if (TryParseConstant())
+		{
+			return true;
+		}
+		if (TryParseMatch(plugin.NodeAbsoluteRegex) && match is not null)
+		{
+			Tokens.Add(new ExpressionToken(ExpressionTokenType.Node, match.Groups[1].Value));
+			return true;
+		}
+		if (TryParseIdentifierOrFunction())
+		{
+			return true;
+		}
+		if (TryParseParenExpr())
+		{
+			return true;
+		}
+		return false;
+	}
+	#endregion
+
+	bool TryParseConstant()
+	{
+		int _index = index;
+		if (TryParseMatch(plugin.NumberRegex) && match is not null)
+		{
+			string text = match.Groups[1].Value;
+			if (double.TryParse(text, CultureInfo.InvariantCulture, out var number))
+			{
+				Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, text, number));
+				return true;
+			}
+			index = _index;
+			return false;
+		}
+		index = _index;
+		return false;
+
+	}
+
+	#region TryParseIdentifierOrFunction()
+	bool TryParseIdentifierOrFunction()
+	{
+		int _index = index;
+		if (TryParseMatch(plugin.IdentifierRegex))
+		{
+			ArgumentNullException.ThrowIfNull(match);
+			string identifier = match.Groups[1].Value;
+			if (!TryParseMatch(plugin.FunctionStartRegex))
+			{
+				index = _index;
+				return false;
+			}
+			if (TryParseMatch(plugin.FunctionEndRegex))
+			{
+				if (plugin.Functions.TryGetValue(identifier, out var _functionInfo) && _functionInfo is not null && _functionInfo.AritySpec.IsZero)
+				{
+					if (_functionInfo.IsDeterministic)
+					{
+						// For deterministic functions with zero arguments, we can evaluate them at parse time and treat them as constants.
+						object? value = _functionInfo.Function(Array.Empty<object?>());
+						Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, identifier, value, _functionInfo, 0));
+						return true;
+					}
+					Tokens.Add(new ExpressionToken(ExpressionTokenType.Function, identifier, null, _functionInfo, 0));
+					return true;
+				}
+				index = _index;
+				return false;
+			}
+			if (!TryParseExpr())
+			{
+				index = _index;
+				return false;
+			}
+			int arity = 1;
+			while (TryParseMatch(plugin.FunctionCommaRegex))
+			{
+				if (!TryParseExpr())
+				{
+					index = _index;
+					return false;
+				}
+				arity++;
+			}
+			if (!TryParseMatch(plugin.FunctionEndRegex))
+			{
+				index = _index;
+				return false;
+			}
+			if (plugin.Functions.TryGetValue(identifier, out var functionInfo) && functionInfo is not null && (functionInfo.AritySpec.Accepts(arity)))
+			{
+				if (functionInfo.IsDeterministic
+					&& Tokens.Count >= arity
+					&& Tokens.Skip(Tokens.Count - arity).Take(arity).ToList() is List<ExpressionToken> lastArgs
+					&& lastArgs.All(t => t.TokenType == ExpressionTokenType.Constant))
+				{
+					object? value = functionInfo.Function(lastArgs.Select(t => t.Value).ToArray());
+					Tokens.RemoveRange(Tokens.Count - arity, arity);
+					Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
+					return true;
+				}
+				Tokens.Add(new ExpressionToken(ExpressionTokenType.Function, identifier, null, functionInfo, arity));
+				return true;
+			}
+			index = _index;
+			return false;
+		}
+		index = _index;
+		return false;
+	}
+	#endregion
+
+	#region TryParseParenExpr()
+	bool TryParseParenExpr()
+	{
+		int _index = index;
+		if (TryParseMatch(plugin.ParenStartRegex))
+		{
+			if (!TryParseExpr())
+			{
+				index = _index;
+				return false;
+			}
+			if (!TryParseMatch(plugin.ParenEndRegex))
+			{
+				index = _index;
+				return false;
+			}
+			return true;
+		}
+		index = _index;
+		return false;
+	}
+	#endregion
+
+	#region TryParseExpr()
+	bool TryParseExpr() => TryParseLogicalOr();
+	#endregion
+
+	#region TryParseLogicalOr()
+	bool TryParseLogicalOr() => TryParseBinaryOperation(plugin.LogicalOrRegex, TryParseLogicalAnd);
+	#endregion
+
+	#region TryParseLogicalAnd()
+	bool TryParseLogicalAnd() => TryParseBinaryOperation(plugin.LogicalAndRegex, TryParseEquality);
+	#endregion
+
+	#region TryParseEquality()
+	bool TryParseEquality() => TryParseBinaryOperation(plugin.EqualityOperatorsRegex, TryParseComparison);
+	#endregion
+
+	#region TryParseComparison()
+	bool TryParseComparison() => TryParseBinaryOperation(plugin.ComparisonOperatorsRegex, TryParseSum);
+	#endregion
+
+	#region TryParseSum()
+	bool TryParseSum() => TryParseBinaryOperation(plugin.SumRegex, TryParseProduct);
+	#endregion
+
+	#region TryParseProduct()
+	bool TryParseProduct() => TryParseBinaryOperation(plugin.ProductRegex, TryParseNegatablePrimary);
+	#endregion
+
+	#region TryParseMatch(Regex regex)
+	bool TryParseMatch(Regex regex)
+	{
+		match = regex.Match(expression, index);
+		if (!match.Success || match.Index != index)
+		{
+			return false;
+		}
+		index += match.Length;
+		return true;
+	}
+	#endregion
+
+	#region TryParseBinaryOperation(Regex operatorRegex, Func<bool> parseNext)
+	bool TryParseBinaryOperation(Regex operatorRegex, Func<bool> parseNext)
+	{
+		if (!parseNext())
+		{
+			return false;
+		}
+		while (true)
+		{
+			int _index = index;
+			if (TryParseMatch(operatorRegex) && match is not null)
+			{
+				string op = match.Groups[1].Value;
+				if (!parseNext())
+				{
+					index = _index;
+					return false;
+				}
+				if (!plugin.Functions.TryGetValue(op, out var functionInfo) || functionInfo is null)
+				{
+					return false;
+				}
+				if (functionInfo.IsDeterministic
+					&& Tokens.Count >= 2
+					&& Tokens[Tokens.Count - 1].TokenType == ExpressionTokenType.Constant
+					&& Tokens[Tokens.Count - 2].TokenType == ExpressionTokenType.Constant)
+				{
+					object?[] args = new object?[2];
+					args[0] = Tokens[Tokens.Count - 2].Value;
+					args[1] = Tokens[Tokens.Count - 1].Value;
+					object? value = functionInfo.Function(args);
+					Tokens.RemoveRange(Tokens.Count - 2, 2);
+					Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
+					continue;
+				}
+				Tokens.Add(new ExpressionToken(ExpressionTokenType.Operator, op, null, functionInfo, 2));
+				continue;
+			}
+			break;
+		}
+		return true;
+	}
+	#endregion
+}
