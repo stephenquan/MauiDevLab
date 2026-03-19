@@ -20,7 +20,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	sealed partial class QuitNode : ExpressionNode
 	{
-		public long RunId = 0;
+		public long RunId { get; }
 		public QuitNode(long runId) : base()
 		{
 			RunId = runId;
@@ -29,6 +29,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	volatile bool isRunning = false;
 	long runId = 0;
+	long currentRunId = 0;
 	Task? runningTask;
 
 	public event PropertyChangedEventHandler? PropertyChanged
@@ -207,11 +208,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 
 		isRunning = true;
-		long _runId = Interlocked.Increment(ref runId);
+		currentRunId = Interlocked.Increment(ref runId);
 
 		runningTask = Task.Run(() =>
 		{
-			Logger?.LogTrace($"Calculation loop started (worker entered, runId={_runId})");
+			Logger?.LogTrace("Calculation loop started (worker entered, currentRunId={CurrentRunId})", currentRunId);
 			try
 			{
 				while (isRunning && !ct.IsCancellationRequested)
@@ -223,12 +224,12 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 						if (node is QuitNode quitNode)
 						{
-							if (quitNode.RunId != _runId)
+							if (quitNode.RunId != currentRunId)
 							{
 								Logger?.LogWarning(
 									"Ignoring stale QuitNode (runId={QuitRunId}, currentRunId={CurrentRunId})",
 									quitNode.RunId,
-									_runId);
+									currentRunId);
 								continue;
 							}
 
@@ -275,7 +276,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			{
 				isRunning = false;
 				runningTask = null;
-				Logger?.LogTrace($"Calculation loop exited (worker leaving, runId={_runId})");
+				Logger?.LogTrace("Calculation loop exited (worker leaving, currentRunId={CurrentRunId})", currentRunId);
 			}
 		}, ct);
 	}
@@ -289,7 +290,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 
 		isRunning = false;
-		pendingCalculations.Add(new QuitNode(runId));
+		pendingCalculations.Add(new QuitNode(currentRunId));
 		await task;
 		runningTask = null;
 	}
