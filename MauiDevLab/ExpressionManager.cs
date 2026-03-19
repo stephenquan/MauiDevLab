@@ -18,7 +18,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	readonly ConcurrentDictionary<ExpressionNode, byte> queuedNodes = new();
 	readonly WeakEventManager propertyChangedEventManager = new();
 	static readonly ExpressionNode quitNode = new();
-	bool isRunning = false;
+	volatile bool isRunning = false;
 	Task? runningTask;
 
 	public event PropertyChangedEventHandler? PropertyChanged
@@ -198,7 +198,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 		isRunning = true;
 
-		runningTask = Task.Run(async () =>
+		runningTask = Task.Run(() =>
 		{
 			Logger?.LogTrace("Calculation loop started");
 			try
@@ -254,6 +254,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			finally
 			{
 				isRunning = false;
+				runningTask = null;
 				Logger?.LogTrace("Calculation loop stopped");
 			}
 		}, ct);
@@ -261,12 +262,18 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	public async Task StopCalculationLoopAsync()
 	{
-		if (isRunning && runningTask is Task _runningTask)
+		var task = runningTask;
+		if (!isRunning || task is null || task.IsCompleted)
 		{
+			runningTask = null;
 			isRunning = false;
-			pendingCalculations.Add(quitNode);
-			await _runningTask;
+			return;
 		}
+
+		isRunning = false;
+		pendingCalculations.Add(quitNode);
+		await task;
+		runningTask = null;
 	}
 
 	void UpdateDependencyGraph(ExpressionNode node)

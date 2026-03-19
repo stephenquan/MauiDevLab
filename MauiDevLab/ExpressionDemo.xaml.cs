@@ -108,10 +108,15 @@ public partial class ExpressionDemo : ContentPage
 		}
 	}
 
-	protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
+	protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
 	{
 		base.OnNavigatedFrom(args);
 
+		_ = CleanUp();
+	}
+
+	async Task CleanUp()
+	{
 		await EM.StopCalculationLoopAsync();
 		cts?.Cancel();
 		cts?.Dispose();

@@ -7,50 +7,6 @@
     x:Name="demo"
     Title="Expression Demo"
     x:DataType="local:ExpressionDemo">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Style x:Key="FormInputTemplate" TargetType="ContentView">
-                <Setter Property="ControlTemplate">
-                    <Setter.Value>
-                        <ControlTemplate x:DataType="local:FormControlInfo">
-                            <Entry Style="{StaticResource FormInput}" Text="{Binding Node.Value, Mode=TwoWay}" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="FormNoteTemplate" TargetType="ContentView">
-                <Setter Property="ControlTemplate">
-                    <Setter.Value>
-                        <ControlTemplate x:DataType="local:FormControlInfo">
-                            <Entry Style="{StaticResource FormNote}" Text="{Binding Node.Value, Mode=OneWay}" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </ResourceDictionary>
-    </ContentPage.Resources>
-
-    <!--<ScrollView>
-        <VerticalStackLayout Padding="30" Spacing="25">
-            <Label Text="Enter value for x1" />
-            <Entry Style="{StaticResource FormInput}" Text="{Binding EM[/survey/x1], Mode=TwoWay}" />
-            <Label Text="Enter value for x2" />
-            <Entry Style="{StaticResource FormInput}" Text="{Binding EM[/survey/x2], Mode=TwoWay}" />
-            <Label Text="Sum" />
-            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/sum], Mode=OneWay}" />
-            <Label Text="Product" />
-            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/product], Mode=OneWay}" />
-            <Label Text="Hypotenuse" />
-            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/hypotenuse], Mode=OneWay}" />
-            <Label Text="Random" />
-            <Entry Style="{StaticResource FormNote}" Text="{Binding EM[/survey/random], Mode=OneWay}" />
-            <Button
-                Command="{Binding EM.RecalculateByNodeRefCommand}"
-                CommandParameter="/survey/random"
-                Text="Recalculate" />
-        </VerticalStackLayout>
-    </ScrollView>-->
     <CollectionView ItemsSource="{Binding FormControls}">
         <CollectionView.ItemTemplate>
             <DataTemplate x:DataType="local:FormControlInfo">
