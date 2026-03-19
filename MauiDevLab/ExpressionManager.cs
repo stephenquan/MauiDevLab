@@ -17,10 +17,18 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	readonly BlockingCollection<ExpressionNode> pendingCalculations = new();
 	readonly ConcurrentDictionary<ExpressionNode, byte> queuedNodes = new();
 	readonly WeakEventManager propertyChangedEventManager = new();
-	partial class QuitNode : ExpressionNode { }
+
+	sealed partial class QuitNode : ExpressionNode
+	{
+		public long RunId = 0;
+		public QuitNode(long runId) : base()
+		{
+			RunId = runId;
+		}
+	}
 
 	volatile bool isRunning = false;
-	long startTime = 0;
+	long runId = 0;
 	Task? runningTask;
 
 	public event PropertyChangedEventHandler? PropertyChanged
@@ -199,11 +207,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 
 		isRunning = true;
-		startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		long _runId = Interlocked.Increment(ref runId);
 
 		runningTask = Task.Run(() =>
 		{
-			Logger?.LogTrace($"Calculation loop started (worker entered, thread={Thread.CurrentThread.ManagedThreadId})");
+			Logger?.LogTrace($"Calculation loop started (worker entered, runId={_runId})");
 			try
 			{
 				while (isRunning && !ct.IsCancellationRequested)
@@ -213,8 +221,17 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 						var node = pendingCalculations.Take(ct);
 						queuedNodes.TryRemove(node, out _);
 
-						if (node is QuitNode quitNode && quitNode.Timestamp >= startTime)
+						if (node is QuitNode quitNode)
 						{
+							if (quitNode.RunId != _runId)
+							{
+								Logger?.LogWarning(
+									"Ignoring stale QuitNode (runId={QuitRunId}, currentRunId={CurrentRunId})",
+									quitNode.RunId,
+									_runId);
+								continue;
+							}
+
 							isRunning = false;
 							break;
 						}
@@ -258,7 +275,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			{
 				isRunning = false;
 				runningTask = null;
-				Logger?.LogTrace($"Calculation loop exited (worker leaving, thread={Thread.CurrentThread.ManagedThreadId})");
+				Logger?.LogTrace($"Calculation loop exited (worker leaving, runId={_runId})");
 			}
 		}, ct);
 	}
@@ -272,7 +289,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 
 		isRunning = false;
-		pendingCalculations.Add(new QuitNode());
+		pendingCalculations.Add(new QuitNode(runId));
 		await task;
 		runningTask = null;
 	}

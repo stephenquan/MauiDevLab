@@ -4,7 +4,6 @@ namespace MauiDevLab;
 
 
 public readonly record struct AritySpec
-
 {
 	public int Min { get; }
 	public int? Max { get; }

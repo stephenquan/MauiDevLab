@@ -24,7 +24,17 @@ public partial class ExpressionDemo : ContentPage
 		BindingContext = this;
 		InitializeComponent();
 
-		Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), async () => await PopulateModelAsync());
+		Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), async () =>
+		{
+			try
+			{
+				await PopulateModelAsync();
+			}
+			catch (Exception ex)
+			{
+				Logger?.LogError(ex, "Failed to populate model");
+			}
+		});
 	}
 
 	async Task PopulateModelAsync()

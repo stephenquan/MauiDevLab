@@ -9,7 +9,6 @@ public partial class ExpressionNode : ObservableObject
 {
 	public ExpressionManager? Owner { get; internal set; }
 	public string NodeRef { get; internal set; } = string.Empty;
-	public long Timestamp { get; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
 	public ExpressionNode()
 	{
