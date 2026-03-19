@@ -36,7 +36,13 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	public void SetInvokeOnUIThread(IDispatcher dispatcher)
 	{
-		this.invokeOnUIThread = action => dispatcher.Dispatch(action);
+		this.invokeOnUIThread = action =>
+		{
+			if (!dispatcher.Dispatch(action))
+			{
+				action();
+			}
+		};
 	}
 
 	public void InvokeOnUIThread(Action action)
@@ -194,7 +200,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 		runningTask = Task.Run(async () =>
 		{
-			Logger?.LogDebug("Calculation loop started");
+			Logger?.LogTrace("Calculation loop started");
 			try
 			{
 				while (isRunning && !ct.IsCancellationRequested)
@@ -248,7 +254,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			finally
 			{
 				isRunning = false;
-				Logger?.LogDebug("Calculation loop stopped");
+				Logger?.LogTrace("Calculation loop stopped");
 			}
 		}, ct);
 	}

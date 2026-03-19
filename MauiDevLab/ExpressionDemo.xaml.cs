@@ -1,6 +1,7 @@
 // ExpressionDemo.xaml.cs
 
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace MauiDevLab;
 
@@ -10,20 +11,10 @@ namespace MauiDevLab;
 	Justification = "CTS is created and cancelled within navigation lifecycle; no disposal required.")]
 public partial class ExpressionDemo : ContentPage
 {
+	public static ILogger? Logger { get; } = IPlatformApplication.Current?.Services.GetService<ILogger<ExpressionDemo>>();
 	public ExpressionManager EM { get; }
 	CancellationTokenSource? cts;
 	public List<FormControlInfo> FormControls { get; set; } = [];
-
-	//public static FuncConverter<string, Style?> StyleConverter = new(key => Application.Current?.Resources[key] as Style);
-
-	//public static Style? FormInput = Application.Current?.Resources["FormInput"] as Style;
-	//public static Style? FormNote = Application.Current?.Resources["FormNote"] as Style;
-
-	//public static ControlTemplate FormInputTemplate = new ControlTemplate(
-	//	() => new Entry { Style = FormInput }.Bind(Entry.TextProperty, "Node.Value", BindingMode.TwoWay));
-
-	//public static ControlTemplate FormNodeTemplate = new ControlTemplate(
-	//	() => new Entry { Style = FormNote }.Bind(Entry.TextProperty, "Node.Value", BindingMode.OneWay));
 
 	public ExpressionDemo(ExpressionManager em)
 	{
@@ -39,10 +30,10 @@ public partial class ExpressionDemo : ContentPage
 	async Task PopulateModelAsync()
 	{
 		Stopwatch sw = Stopwatch.StartNew();
+		int numExpressions = 33333;
+		int numControls = numExpressions * 3;
 		var controls = await Task.Run(() =>
 		{
-			int numExpressions = 33333;
-			int numControls = numExpressions * 3;
 
 			FormControlInfo[] controls = new FormControlInfo[numControls];
 
@@ -103,7 +94,7 @@ public partial class ExpressionDemo : ContentPage
 		OnPropertyChanged(nameof(FormControls));
 
 		sw.Stop();
-		Debug.WriteLine($"Model population took {sw.Elapsed.TotalSeconds} seconds.");
+		Logger?.LogTrace($"Populated {numControls} controls in {sw.Elapsed.TotalSeconds} seconds.");
 	}
 
 	protected override void OnNavigatedTo(NavigatedToEventArgs args)
@@ -117,19 +108,16 @@ public partial class ExpressionDemo : ContentPage
 		}
 	}
 
-	protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+	protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
 	{
 		base.OnNavigatedFrom(args);
 
-		Dispatcher.Dispatch(async () =>
-		{
-			await EM.StopCalculationLoopAsync();
-			cts?.Cancel();
-			cts?.Dispose();
-			cts = null;
-			FormControls.Clear();
-			EM.Clear();
-		});
+		await EM.StopCalculationLoopAsync();
+		cts?.Cancel();
+		cts?.Dispose();
+		cts = null;
+		FormControls.Clear();
+		EM.Clear();
 	}
 }
 

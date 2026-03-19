@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 
 namespace MauiDevLab;
 
@@ -76,10 +77,23 @@ public partial class ExpressionParser
 				&& Tokens.Last() is ExpressionToken lastToken
 				&& lastToken.TokenType == ExpressionTokenType.Constant)
 			{
-				var value = functionInfo.Function(new object?[] { lastToken.Value });
-				Tokens.RemoveAt(Tokens.Count - 1);
-				Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
-				return true;
+				try
+				{
+					var value = functionInfo.Function(new object?[] { lastToken.Value });
+					Tokens.RemoveAt(Tokens.Count - 1);
+					Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
+					return true;
+				}
+				catch (Exception ex)
+				{
+					ExpressionManager.Logger?.LogError(
+						ex,
+						"Error evaluating deterministic function {Function} with argument {Argument}",
+						functionInfo,
+						lastToken.Value);
+					index = _index;
+					return false;
+				}
 			}
 			Tokens.Add(new ExpressionToken(ExpressionTokenType.Operator, negateOp, null, functionInfo, 1));
 			return true;
@@ -151,10 +165,22 @@ public partial class ExpressionParser
 				{
 					if (_functionInfo.IsDeterministic)
 					{
-						// For deterministic functions with zero arguments, we can evaluate them at parse time and treat them as constants.
-						object? value = _functionInfo.Function(Array.Empty<object?>());
-						Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, identifier, value, _functionInfo, 0));
-						return true;
+						try
+						{
+							// For deterministic functions with zero arguments, we can evaluate them at parse time and treat them as constants.
+							object? value = _functionInfo.Function(Array.Empty<object?>());
+							Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, identifier, value, _functionInfo, 0));
+							return true;
+						}
+						catch (Exception ex)
+						{
+							ExpressionManager.Logger?.LogError(
+								ex,
+								"Error evaluating deterministic function {Function} with zero arguments",
+								_functionInfo);
+							index = _index;
+							return false;
+						}
 					}
 					Tokens.Add(new ExpressionToken(ExpressionTokenType.Function, identifier, null, _functionInfo, 0));
 					return true;
@@ -189,10 +215,23 @@ public partial class ExpressionParser
 					&& Tokens.Skip(Tokens.Count - arity).Take(arity).ToList() is List<ExpressionToken> lastArgs
 					&& lastArgs.All(t => t.TokenType == ExpressionTokenType.Constant))
 				{
-					object? value = functionInfo.Function(lastArgs.Select(t => t.Value).ToArray());
-					Tokens.RemoveRange(Tokens.Count - arity, arity);
-					Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
-					return true;
+					try
+					{
+						object? value = functionInfo.Function(lastArgs.Select(t => t.Value).ToArray());
+						Tokens.RemoveRange(Tokens.Count - arity, arity);
+						Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
+						return true;
+					}
+					catch (Exception ex)
+					{
+						ExpressionManager.Logger?.LogError(
+							ex,
+							"Error evaluating deterministic function {Function} with arguments {Arguments}",
+							functionInfo,
+							lastArgs.Select(t => t.Value).ToArray());
+						index = _index;
+						return false;
+					}
 				}
 				Tokens.Add(new ExpressionToken(ExpressionTokenType.Function, identifier, null, functionInfo, arity));
 				return true;
@@ -299,10 +338,23 @@ public partial class ExpressionParser
 					object?[] args = new object?[2];
 					args[0] = Tokens[Tokens.Count - 2].Value;
 					args[1] = Tokens[Tokens.Count - 1].Value;
-					object? value = functionInfo.Function(args);
-					Tokens.RemoveRange(Tokens.Count - 2, 2);
-					Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
-					continue;
+					try
+					{
+						object? value = functionInfo.Function(args);
+						Tokens.RemoveRange(Tokens.Count - 2, 2);
+						Tokens.Add(new ExpressionToken(ExpressionTokenType.Constant, string.Empty, value));
+						continue;
+					}
+					catch (Exception ex)
+					{
+						ExpressionManager.Logger?.LogError(
+							ex,
+							"Error evaluating deterministic function {Function} with arguments {Arguments}",
+							functionInfo,
+							args);
+						index = _index;
+						return false;
+					}
 				}
 				Tokens.Add(new ExpressionToken(ExpressionTokenType.Operator, op, null, functionInfo, 2));
 				continue;

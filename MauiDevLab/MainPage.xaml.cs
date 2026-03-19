@@ -1,6 +1,7 @@
 ﻿// MainPage.xaml.cs
 
-#define LEAK_DIAGNOSTICS
+// Uncomment the following line to enable leak diagnostics on the MainPage. This will force a GC collection when navigating to the page, which can help identify if there are any leaks related to the page or its resources. Note that this should only be used in debug builds and may impact performance due to the forced garbage collection.
+// #define LEAK_DIAGNOSTICS
 
 using System.Reflection;
 
