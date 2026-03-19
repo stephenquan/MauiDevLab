@@ -17,7 +17,8 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	readonly BlockingCollection<ExpressionNode> pendingCalculations = new();
 	readonly ConcurrentDictionary<ExpressionNode, byte> queuedNodes = new();
 	readonly WeakEventManager propertyChangedEventManager = new();
-	static readonly ExpressionNode quitNode = new();
+	partial class QuitNode : ExpressionNode { }
+
 	volatile bool isRunning = false;
 	long startTime = 0;
 	Task? runningTask;
@@ -212,7 +213,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 						var node = pendingCalculations.Take(ct);
 						queuedNodes.TryRemove(node, out _);
 
-						if (node == quitNode && node.Timestamp >= startTime)
+						if (node is QuitNode quitNode && quitNode.Timestamp >= startTime)
 						{
 							isRunning = false;
 							break;
@@ -271,7 +272,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 
 		isRunning = false;
-		pendingCalculations.Add(quitNode);
+		pendingCalculations.Add(new QuitNode());
 		await task;
 		runningTask = null;
 	}
