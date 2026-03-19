@@ -31,12 +31,16 @@ public static class MauiProgram
 			.RegisterDemo("VerticalStackList Demo (Fast)", nameof(VerticalScrollStackDemo), typeof(VerticalScrollStackDemo))
 			.RegisterDemo("Localize Demo", nameof(LocalizeDemo), typeof(LocalizeDemo))
 			.RegisterDemo("Jint Demo", nameof(JintDemo), typeof(JintDemo))
+			.RegisterDemo("Expression Demo", nameof(ExpressionDemo), typeof(ExpressionDemo))
 			;
 
 #if DEBUG
 		builder.Logging.AddDebug();
+		builder.Logging.AddFilter("MauiDevLab", LogLevel.Debug);
 #endif
 
+		builder.Services.AddTransient<ExpressionManager>();
+		builder.Services.AddTransient<ExpressionDemo>();
 		return builder.Build();
 	}
 }

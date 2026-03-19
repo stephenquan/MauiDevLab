@@ -42,7 +42,7 @@ public class XHR
 		ResponseText = string.Empty;
 		ReadyState = ReadyStateEnum.UNSENT;
 		mediaType = defaultMediaType;
-		FinalizePromiseWithDispatcher(() => OnReadyStateChange?.Invoke());
+		InvokeOnDispatcher(() => OnReadyStateChange?.Invoke());
 	}
 
 	public void Open(string method, string url, bool isasync = true)
@@ -50,7 +50,7 @@ public class XHR
 		Reset();
 		request = new HttpRequestMessage(new HttpMethod(method), url);
 		ReadyState = ReadyStateEnum.OPENED;
-		FinalizePromiseWithDispatcher(() => OnReadyStateChange?.Invoke());
+		InvokeOnDispatcher(() => OnReadyStateChange?.Invoke());
 	}
 
 	public void SetRequestHeader(string header, string value)
@@ -80,13 +80,17 @@ public class XHR
 			{
 				request.Content = new StringContent(body, Encoding.UTF8, mediaType);
 			}
-			using var response = await HttpClientHelper.HttpClientShared.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+			using var response = await HttpClientHelper.HttpClientShared
+				.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
+				;
 			StatusCode = (int)response.StatusCode;
 			ReadyState = ReadyStateEnum.HEADERS_RECEIVED;
 			OnReadyStateChange?.Invoke();
 			ReadyState = ReadyStateEnum.LOADING;
 			OnReadyStateChange?.Invoke();
-			ResponseText = await response.Content.ReadAsStringAsync(ct);
+			ResponseText = await response.Content
+				.ReadAsStringAsync(ct)
+				;
 			request?.Dispose();
 			request = null;
 			ReadyState = ReadyStateEnum.DONE;
@@ -106,14 +110,14 @@ public class XHR
 	}
 
 	public JsValue SendPromiseBridge(string? body)
-		=> engine.ToActionPromise(SendAsync, body, FinalizePromiseWithDispatcher);
+		=> engine.ToActionPromise(SendAsync, body, InvokeOnDispatcher);
 
 	public void SendSync(string? body = null)
 	{
 		SendAsync(body).GetAwaiter().GetResult();
 	}
 
-	public void FinalizePromiseWithDispatcher(Action action)
+	public void InvokeOnDispatcher(Action action)
 	{
 		if (!page.Dispatcher.Dispatch(action))
 		{
