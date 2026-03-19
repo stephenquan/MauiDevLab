@@ -19,6 +19,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	readonly WeakEventManager propertyChangedEventManager = new();
 	static readonly ExpressionNode quitNode = new();
 	volatile bool isRunning = false;
+	long startTime = 0;
 	Task? runningTask;
 
 	public event PropertyChangedEventHandler? PropertyChanged
@@ -197,10 +198,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 
 		isRunning = true;
+		startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
 		runningTask = Task.Run(() =>
 		{
-			Logger?.LogTrace("Calculation loop started");
+			Logger?.LogTrace($"Calculation loop started (worker entered, thread={Thread.CurrentThread.ManagedThreadId})");
 			try
 			{
 				while (isRunning && !ct.IsCancellationRequested)
@@ -210,7 +212,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 						var node = pendingCalculations.Take(ct);
 						queuedNodes.TryRemove(node, out _);
 
-						if (node == quitNode)
+						if (node == quitNode && node.Timestamp >= startTime)
 						{
 							isRunning = false;
 							break;
@@ -255,7 +257,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			{
 				isRunning = false;
 				runningTask = null;
-				Logger?.LogTrace("Calculation loop stopped");
+				Logger?.LogTrace($"Calculation loop exited (worker leaving, thread={Thread.CurrentThread.ManagedThreadId})");
 			}
 		}, ct);
 	}
@@ -263,10 +265,8 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	public async Task StopCalculationLoopAsync()
 	{
 		var task = runningTask;
-		if (!isRunning || task is null || task.IsCompleted)
+		if (task is null || task.IsCompleted)
 		{
-			runningTask = null;
-			isRunning = false;
 			return;
 		}
 

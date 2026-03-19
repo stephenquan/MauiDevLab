@@ -117,12 +117,19 @@ public partial class ExpressionDemo : ContentPage
 
 	async Task CleanUp()
 	{
-		await EM.StopCalculationLoopAsync();
-		cts?.Cancel();
-		cts?.Dispose();
-		cts = null;
-		FormControls.Clear();
-		await EM.ClearAsync();
+		try
+		{
+			await EM.StopCalculationLoopAsync();
+			cts?.Cancel();
+			cts?.Dispose();
+			cts = null;
+			FormControls.Clear();
+			await EM.ClearAsync();
+		}
+		catch (Exception ex)
+		{
+			Logger?.LogError(ex, "ExpressionDemo cleanup failed");
+		}
 	}
 }
 
