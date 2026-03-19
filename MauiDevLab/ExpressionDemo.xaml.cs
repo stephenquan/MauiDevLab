@@ -117,7 +117,7 @@ public partial class ExpressionDemo : ContentPage
 		cts?.Dispose();
 		cts = null;
 		FormControls.Clear();
-		EM.Clear();
+		await EM.ClearAsync();
 	}
 }
 

@@ -313,11 +313,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		GC.SuppressFinalize(this);
 	}
 
-	public void Clear()
+	public async Task ClearAsync()
 	{
 		if (isRunning)
 		{
-			StopCalculationLoopAsync().GetAwaiter().GetResult();
+			await StopCalculationLoopAsync().ConfigureAwait(false);
 		}
 		queuedNodes.Clear();
 		while (pendingCalculations.TryTake(out _))

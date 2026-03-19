@@ -58,18 +58,7 @@
                     <VerticalStackLayout Padding="5" Spacing="5">
                         <Label Style="{StaticResource FormLabel}" Text="{Binding Label}" />
                         <Label Style="{StaticResource FormHint}" Text="{Binding Hint}" />
-                        <!--<Entry
-                            x:Name="entry"
-                            Style="{Binding Style, Converter={x:Static local:ExpressionDemo.StyleConverter}, FallbackValue={x:StaticResource FormInput}}"
-                            Text="{local:Bind Path={Binding NodeRef,
-                                                            StringFormat='EM[{0}]'},
-                                              Mode={Binding Mode},
-                                              Source={Reference demo}}" />-->
-                        <!--<Entry
-                            x:Name="entry"
-                            Style="{Binding Style, Converter={x:Static local:ExpressionDemo.StyleConverter}, FallbackValue={x:StaticResource FormInput}}"
-                            Text="{Binding Node.ExternalValue, Mode=TwoWay}" />-->
-                        <local:FormControl Node="{Binding Node}" QuestionType="{Binding QuestionType}" />
+                        <local:FormControl />
                     </VerticalStackLayout>
                 </Grid>
             </DataTemplate>
