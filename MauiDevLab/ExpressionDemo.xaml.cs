@@ -8,7 +8,7 @@ namespace MauiDevLab;
 [System.Diagnostics.CodeAnalysis.SuppressMessage(
 	"Design",
 	"CA1001:Types that own disposable fields should be disposable",
-	Justification = "CTS is created and cancelled within navigation lifecycle; no disposal required.")]
+	Justification = "CTS is created in OnNavigatedTo and cancelled/disposed in OnNavigatedFrom as part of the page navigation lifecycle, so implementing IDisposable on this framework-managed ContentPage is unnecessary.")]
 public partial class ExpressionDemo : ContentPage
 {
 	public static ILogger? Logger { get; } = IPlatformApplication.Current?.Services.GetService<ILogger<ExpressionDemo>>();
