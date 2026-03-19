@@ -4,24 +4,112 @@ using System.Text.RegularExpressions;
 
 namespace MauiDevLab;
 
+
+/// <summary>
+/// Provides the configurable syntax and function registry used by
+/// <see cref="ExpressionParser"/> and the expression evaluation engine.
+/// </summary>
 public class ExpressionParserPlugin
 {
+	/// <summary>
+	/// Regular expression matching the logical OR operator.
+	/// </summary>
 	public Regex LogicalOrRegex = ExpressionParserDefaults.LogicalOrOperatorRegex();
+
+	/// <summary>
+	/// Regular expression matching the logical AND operator.
+	/// </summary>
 	public Regex LogicalAndRegex = ExpressionParserDefaults.LogicalAndOperatorRegex();
+
+	/// <summary>
+	/// Regular expression matching comparison operators.
+	/// </summary>
 	public Regex ComparisonOperatorsRegex = ExpressionParserDefaults.ComparisonOperatorsRegex();
+
+	/// <summary>
+	/// Regular expression matching equality operators.
+	/// </summary>
 	public Regex EqualityOperatorsRegex = ExpressionParserDefaults.EqualityOperatorsRegex();
+
+	/// <summary>
+	/// Regular expression matching additive operators.
+	/// </summary>
 	public Regex SumRegex = ExpressionParserDefaults.SumRegex();
+
+	/// <summary>
+	/// Regular expression matching multiplicative operators.
+	/// </summary>
 	public Regex ProductRegex = ExpressionParserDefaults.ProductRegex();
+
+	/// <summary>
+	/// Regular expression matching absolute node references.
+	/// </summary>
 	public Regex NodeAbsoluteRegex = ExpressionParserDefaults.NodeAbsoluteRegex();
+
+	/// <summary>
+	/// Regular expression matching numeric literals.
+	/// </summary>
 	public Regex NumberRegex = ExpressionParserDefaults.NumberRegex();
+
+	/// <summary>
+	/// Regular expression matching identifiers.
+	/// </summary>
 	public Regex IdentifierRegex = ExpressionParserDefaults.IdentifierRegex();
+
+	/// <summary>
+	/// Regular expression matching the start of a function call.
+	/// </summary>
 	public Regex FunctionStartRegex = ExpressionParserDefaults.FunctionStartRegex();
+
+	/// <summary>
+	/// Regular expression matching the end of a function call.
+	/// </summary>
 	public Regex FunctionEndRegex = ExpressionParserDefaults.FunctionEndRegex();
+
+	/// <summary>
+	/// Regular expression matching the comma separator in function arguments.
+	/// </summary>
 	public Regex FunctionCommaRegex = ExpressionParserDefaults.FunctionCommaRegex();
+
+	/// <summary>
+	/// Regular expression matching the start of a parenthesis.
+	/// </summary>
 	public Regex ParenStartRegex = ExpressionParserDefaults.ParenStartRegex();
+
+	/// <summary>
+	/// Regular expression matching the end of a parenthesis.
+	/// </summary>
 	public Regex ParenEndRegex = ExpressionParserDefaults.ParenEndRegex();
+
+	/// <summary>
+	/// Regular expression matching the negation operator.
+	/// </summary>
 	public Regex NegateRegex = ExpressionParserDefaults.NegateRegex();
 
+	/// <summary>
+	/// Regular expression matching single-quoted strings.
+	/// </summary>
+	public Regex SingleQuotedRegex = ExpressionParserDefaults.SingleQuotedRegex();
+
+	/// <summary>
+	/// Regular expression matching the body of single-quoted strings.
+	/// </summary>
+	public Regex SingleQuotedBodyRegex = ExpressionParserDefaults.SingleQuotedBodyRegex();
+
+	/// <summary>
+	/// Regular expression matching double-quoted strings.
+	/// </summary>
+	public Regex DoubleQuotedRegex = ExpressionParserDefaults.DoubleQuotedRegex();
+
+	/// <summary>
+	/// Regular expression matching the body of double-quoted strings.
+	/// </summary>
+	public Regex DoubleQuotedBodyRegex = ExpressionParserDefaults.DoubleQuotedBodyRegex();
+
+
+	/// <summary>
+	/// Registry of supported operators and functions.
+	/// </summary>
 	public Dictionary<string, ExpressionFunctionInfo> Functions = new()
 	{
 		// https://docs.getodk.org/form-operators-functions/#math-operators
@@ -91,6 +179,13 @@ public class ExpressionParserPlugin
 		{ "negate", new (args => args.WrapFunc<double,double>(a => -a), AritySpec.One) },
 	};
 
+
+	/// <summary>
+	/// Compares two values for equality with strict type matching.
+	/// </summary>
+	/// <param name="x">The first value.</param>
+	/// <param name="y">The second value.</param>
+	/// <returns>True if both values are null or equal and of the same type; otherwise false.</returns>
 	public static bool Eq(object? x, object? y)
 	{
 		if (x is null && y is null)
@@ -108,6 +203,10 @@ public class ExpressionParserPlugin
 		return x.Equals(y);
 	}
 
+
+	/// <summary>
+	/// Returns the current date (local) as a Unix timestamp in milliseconds.
+	/// </summary>
 	public static long Today()
 		=> new DateTimeOffset(
 			DateTime.Today.Year,
@@ -116,9 +215,17 @@ public class ExpressionParserPlugin
 			12, 0, 0,
 			DateTimeOffset.Now.Offset).ToUnixTimeMilliseconds();
 
+	/// <summary>
+	/// Returns the current UTC time as a Unix timestamp in milliseconds.
+	/// </summary>
 	public static long Now()
 		=> DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
+	/// <summary>
+	/// Converts a value to a boolean using expression semantics.
+	/// </summary>
+	/// <param name="arg">The value to convert.</param>
+	/// <returns>The boolean interpretation of the value.</returns>
 	public static bool ToBoolean(object? arg)
 		=> arg switch
 		{

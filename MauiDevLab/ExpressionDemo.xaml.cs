@@ -40,7 +40,7 @@ public partial class ExpressionDemo : ContentPage
 	async Task PopulateModelAsync()
 	{
 		Stopwatch sw = Stopwatch.StartNew();
-		int numExpressions = 33333;
+		int numExpressions = 3333;
 		int numControls = numExpressions * 3;
 		var controls = await Task.Run(() =>
 		{
@@ -62,7 +62,7 @@ public partial class ExpressionDemo : ContentPage
 					4 => $"sqrt({refA} * {refA} + {refB} * {refB})",
 					5 => $"if ({refA} > {refB}, {refA}, {refB})",
 					6 => $"if ({refA} < {refB}, {refA}, {refB})",
-					7 => $"concat({refA}, 1001, {refB})",
+					7 => $"concat({refA}, '-XYZ-', {refB})",
 					8 => $"sqrt(pow({refA}, 2) + pow({refB}, 2))",
 					9 => $"{refA} mod {refB}",
 					_ => $"{refA} + {refB}",
@@ -92,7 +92,7 @@ public partial class ExpressionDemo : ContentPage
 				{
 					Node = nodeC,
 					Label = refC,
-					Hint = $"Result of for {expression}",
+					Hint = $"Result for {expression}",
 					QuestionType = "FormNote",
 				};
 			});

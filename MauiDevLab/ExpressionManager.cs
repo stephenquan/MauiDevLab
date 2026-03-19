@@ -7,10 +7,23 @@ using Microsoft.Extensions.Logging;
 
 namespace MauiDevLab;
 
+/// <summary>
+/// Manages a graph of <see cref="ExpressionNode"/> instances and evaluates expressions
+/// asynchronously using a background calculation loop.
+/// The manager maintains dependency relationships between nodes, propagates value changes,
+/// and ensures calculations are performed in the correct order.
+/// Results and notifications are marshalled back to the UI thread when required.
+/// </summary>
 public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 {
+	/// <summary>
+	/// Optional logger used for diagnostics, tracing, and error reporting.
+	/// </summary>
 	public static ILogger? Logger { get; } = IPlatformApplication.Current?.Services.GetService<ILogger<ExpressionManager>>();
 
+	/// <summary>
+	/// Parser plugin defining supported operators, functions, and syntax rules.
+	/// </summary>
 	public readonly ExpressionParserPlugin ParserPlugin = new();
 
 	readonly ConcurrentDictionary<string, ExpressionNode> dictionary = new();
@@ -32,6 +45,9 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	long currentRunId = 0;
 	Task? runningTask;
 
+	/// <summary>
+	/// Raised when a value exposed by this manager changes.
+	/// </summary>
 	public event PropertyChangedEventHandler? PropertyChanged
 	{
 		add => propertyChangedEventManager.AddEventHandler(value);
@@ -40,11 +56,19 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	Action<Action>? invokeOnUIThread;
 
+	/// <summary>
+	/// Configures a callback used to marshal work onto the UI thread.
+	/// </summary>
+	/// <param name="invokeOnUIThread">A delegate that executes the supplied action on the UI thread.</param>
 	public void SetInvokeOnUIThread(Action<Action> invokeOnUIThread)
 	{
 		this.invokeOnUIThread = invokeOnUIThread;
 	}
 
+	/// <summary>
+	/// Configures UI-thread marshalling using a MAUI <see cref="IDispatcher"/>.
+	/// </summary>
+	/// <param name="dispatcher">The dispatcher used to invoke actions.</param>
 	public void SetInvokeOnUIThread(IDispatcher dispatcher)
 	{
 		this.invokeOnUIThread = action =>
@@ -56,6 +80,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		};
 	}
 
+	/// <summary>
+	/// Executes an action on the UI thread if a dispatcher has been configured;
+	/// otherwise executes it immediately on the current thread.
+	/// </summary>
+	/// <param name="action">The action to execute.</param>
 	public void InvokeOnUIThread(Action action)
 	{
 		if (invokeOnUIThread is not null)
@@ -68,21 +97,51 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 	}
 
+	/// <summary>
+	/// Gets or sets the value of a node by reference.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
 	public object? this[string nodeRef]
 	{
 		get => GetOrAddNode(nodeRef).InternalValue;
 		set => SetValue(nodeRef, value, ExpressionValueKind.UserInput);
 	}
 
+	/// <summary>
+	/// Gets the value of a node, cast to the specified type.
+	/// </summary>
+	/// <typeparam name="T">The expected value type.</typeparam>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <returns>
+	/// The value if present and compatible; otherwise the default value of <typeparamref name="T"/>.
+	/// </returns>
 	public T GetValue<T>(string nodeRef)
 		=> (GetValue(nodeRef) is T value) ? value : default!;
 
+	/// <summary>
+	/// Gets the raw value of a node.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <returns>The current value, or null if the node does not exist.</returns>
 	public object? GetValue(string nodeRef)
 		=> TryGetValueInfo(nodeRef, out var valueInfo) ? valueInfo?.InternalValue : null;
 
+	/// <summary>
+	/// Attempts to retrieve the <see cref="ExpressionNode"/> associated with a reference.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <param name="valueInfo">When this method returns, contains the node if found; otherwise null.</param>
+	/// <returns>True if the node exists; otherwise false.</returns>
 	public bool TryGetValueInfo(string nodeRef, out ExpressionNode? valueInfo)
 		=> dictionary.TryGetValue(nodeRef, out valueInfo);
 
+	/// <summary>
+	/// Retrieves an existing node or creates a new one if it does not exist.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <param name="valueType">Optional value type constraint.</param>
+	/// <param name="expression">Optional expression.</param>
+	/// <returns>The existing or newly created node.</returns>
 	public ExpressionNode GetOrAddNode(string nodeRef, Type? valueType = null, string? expression = null)
 		=> dictionary.GetOrAdd(nodeRef, nodeRef => new ExpressionNode
 		{
@@ -94,9 +153,27 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			IsDeterministic = false
 		});
 
+	/// <summary>
+	/// Sets the value of a node with an explicit value type.
+	/// </summary>
+	/// <typeparam name="T">The expected value type.</typeparam>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <param name="value">The value to assign.</param>
+	/// <param name="reason">The reason for the value change.</param>
+	/// <returns>The affected node.</returns>
 	public ExpressionNode SetValue<T>(string nodeRef, object? value, ExpressionValueKind reason = ExpressionValueKind.Default)
 		=> SetValue(nodeRef, value, reason, typeof(T?));
 
+	/// <summary>
+	/// Sets the value of a node and propagates changes to dependent expressions.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <param name="value">The value to assign.</param>
+	/// <param name="valueKind">The reason for the value change.</param>
+	/// <param name="valueType">Optional value type constraint.</param>
+	/// <param name="isDeterministic">Indicates whether the value is deterministic.</param>
+	/// <param name="trace">Whether to emit trace logging.</param>
+	/// <returns>The affected node.</returns>
 	public ExpressionNode SetValue(string nodeRef, object? value, ExpressionValueKind valueKind = ExpressionValueKind.Default, Type? valueType = default, bool isDeterministic = true, bool trace = true)
 	{
 		bool modified = false;
@@ -142,6 +219,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		return node;
 	}
 
+
+	/// <summary>
+	/// Notifies listeners that a node value has changed and schedules dependent recalculations.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
 	public void NotifyValueChanged(string nodeRef)
 	{
 		if (dictionary.TryGetValue(nodeRef, out var _node) && _node is ExpressionNode node)
@@ -159,9 +241,25 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 	}
 
+
+	/// <summary>
+	/// Assigns an expression to a node with an explicit result type.
+	/// </summary>
+	/// <typeparam name="T">The expected result type.</typeparam>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <param name="expression">The expression text.</param>
+	/// <returns>The affected node.</returns>
 	public ExpressionNode SetExpression<T>(string nodeRef, string expression)
 		=> SetExpression(nodeRef, expression, typeof(T?));
 
+
+	/// <summary>
+	/// Assigns an expression to a node and enqueues it for calculation.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
+	/// <param name="expression">The expression text.</param>
+	/// <param name="valueType">Optional result type constraint.</param>
+	/// <returns>The affected node.</returns>
 	public ExpressionNode SetExpression(string nodeRef, string expression, Type? valueType = default)
 	{
 		var node = GetOrAddNode(nodeRef);
@@ -183,6 +281,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		return node;
 	}
 
+
+	/// <summary>
+	/// Enqueues a node for recalculation by reference.
+	/// </summary>
+	/// <param name="nodeRef">The node reference.</param>
 	[RelayCommand]
 	public void RecalculateByNodeRef(string nodeRef)
 	{
@@ -192,6 +295,11 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 	}
 
+
+	/// <summary>
+	/// Enqueues a specific node for recalculation.
+	/// </summary>
+	/// <param name="node">The node to recalculate.</param>
 	public void RecalculateNode(ExpressionNode node)
 	{
 		if (queuedNodes.TryAdd(node, 0))
@@ -200,6 +308,10 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 	}
 
+	/// <summary>
+	/// Starts the background calculation loop.
+	/// </summary>
+	/// <param name="ct">A cancellation token used to stop the loop.</param>
 	public void StartCalculationLoop(CancellationToken ct)
 	{
 		if (isRunning || runningTask is not null)
@@ -226,7 +338,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 						{
 							if (quitNode.RunId != currentRunId)
 							{
-								Logger?.LogWarning(
+								Logger?.LogDebug(
 									"Ignoring stale QuitNode (runId={QuitRunId}, currentRunId={CurrentRunId})",
 									quitNode.RunId,
 									currentRunId);
@@ -281,6 +393,9 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}, ct);
 	}
 
+	/// <summary>
+	/// Stops the background calculation loop and waits for it to exit.
+	/// </summary>
 	public async Task StopCalculationLoopAsync()
 	{
 		var task = runningTask;
@@ -325,6 +440,10 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		node.InputNodeRefs.Clear();
 	}
 
+	/// <summary>
+	/// Releases managed resources used by this instance.
+	/// </summary>
+	/// <param name="disposing">True when called from <see cref="Dispose"/>.</param>
 	protected virtual void Dispose(bool disposing)
 	{
 		if (disposing)
@@ -333,12 +452,19 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 	}
 
+	/// <summary>
+	/// Disposes the manager and suppresses finalization.
+	/// </summary>
 	public void Dispose()
 	{
 		Dispose(true);
 		GC.SuppressFinalize(this);
 	}
 
+
+	/// <summary>
+	/// Clears all nodes, pending calculations, and dependency state.
+	/// </summary>
 	public async Task ClearAsync()
 	{
 		if (isRunning)
