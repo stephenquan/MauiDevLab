@@ -18,7 +18,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	readonly ConcurrentDictionary<ExpressionNode, byte> queuedNodes = new();
 	readonly WeakEventManager propertyChangedEventManager = new();
 	static readonly ExpressionNode quitNode = new();
-	volatile bool isRunning = false;
+	bool isRunning = false;
 	Task? runningTask;
 
 	public event PropertyChangedEventHandler? PropertyChanged
@@ -109,22 +109,16 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		}
 		if (!modified && value is null && node.InternalValue is null)
 		{
-			node.ValueKind = valueKind;
-			node.ValueType = valueType;
 			return node;
 		}
 		if (!modified && value is not null && value.Equals(node.InternalValue))
 		{
-			node.ValueKind = valueKind;
-			node.ValueType = valueType;
 			return node;
 		}
 
 		Logger?.LogTrace("SetValue {NodeRef} to {Value} (type={ValueType}, valueKind={ValueKind}, isDeterministic={IsDeterministic})", nodeRef, value, valueType, valueKind, isDeterministic);
 
 		node.SetInternalValue(value);
-		node.ValueKind = valueKind;
-		node.ValueType = valueType;
 
 		NotifyValueChanged(nodeRef);
 
@@ -133,8 +127,6 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	public void NotifyValueChanged(string nodeRef)
 	{
-		//InvokeOnUIThread(() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"Item[{nodeRef}]")));
-
 		if (dictionary.TryGetValue(nodeRef, out var _node) && _node is ExpressionNode node)
 		{
 			InvokeOnUIThread(() =>
@@ -157,7 +149,10 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	{
 		var node = GetOrAddNode(nodeRef);
 		node.ValueKind = ExpressionValueKind.Uninitialized;
-		node.ValueType = valueType;
+		if (valueType is not null && node.ValueType != valueType)
+		{
+			node.ValueType = valueType;
+		}
 		node.Expression = expression;
 
 		RemoveDependencies(node);
@@ -190,7 +185,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 	public void StartCalculationLoop(CancellationToken ct)
 	{
-		if (isRunning)
+		if (isRunning || runningTask is not null)
 		{
 			return;
 		}
@@ -199,7 +194,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 		runningTask = Task.Run(async () =>
 		{
-			Logger?.LogTrace("Starting calculations");
+			Logger?.LogDebug("Calculation loop started");
 			try
 			{
 				while (isRunning && !ct.IsCancellationRequested)
@@ -211,6 +206,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 
 						if (node == quitNode)
 						{
+							isRunning = false;
 							break;
 						}
 
@@ -239,6 +235,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 							case ExpressionValueKind.CalculateError:
 							default:
 								// Do nothing, won't be re-enqueued
+								Logger?.LogWarning("Node {NodeRef} is in error state ({ValueKind}), skipping calculation", node.NodeRef, node.ValueKind);
 								break;
 						}
 					}
@@ -250,23 +247,19 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			}
 			finally
 			{
-				Logger?.LogTrace("Stopping calculations");
 				isRunning = false;
-				runningTask = null;
+				Logger?.LogDebug("Calculation loop stopped");
 			}
 		}, ct);
 	}
 
-	public async Task StopCalculationLoop()
+	public async Task StopCalculationLoopAsync()
 	{
-		if (isRunning)
+		if (isRunning && runningTask is Task _runningTask)
 		{
 			isRunning = false;
 			pendingCalculations.Add(quitNode);
-			if (runningTask is not null)
-			{
-				await runningTask;
-			}
+			await _runningTask;
 		}
 	}
 
@@ -318,7 +311,7 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 	{
 		if (isRunning)
 		{
-			StopCalculationLoop().GetAwaiter().GetResult();
+			StopCalculationLoopAsync().GetAwaiter().GetResult();
 		}
 		queuedNodes.Clear();
 		while (pendingCalculations.TryTake(out _))

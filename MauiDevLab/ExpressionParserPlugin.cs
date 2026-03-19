@@ -146,9 +146,6 @@ public class ExpressionParserPlugin
 			// ICollection: true if non-empty
 			System.Collections.ICollection col => col.Count > 0,
 
-			// IEnumerable (fallback for sequences): true if it has at least one element
-			System.Collections.IEnumerable en => en.GetEnumerator().MoveNext(),
-
 			// Any other non-null object: true
 			_ => true
 		};

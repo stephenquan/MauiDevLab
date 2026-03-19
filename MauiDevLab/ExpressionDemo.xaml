@@ -7,6 +7,30 @@
     x:Name="demo"
     Title="Expression Demo"
     x:DataType="local:ExpressionDemo">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="FormInputTemplate" TargetType="ContentView">
+                <Setter Property="ControlTemplate">
+                    <Setter.Value>
+                        <ControlTemplate x:DataType="local:FormControlInfo">
+                            <Entry Style="{StaticResource FormInput}" Text="{Binding Node.Value, Mode=TwoWay}" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="FormNoteTemplate" TargetType="ContentView">
+                <Setter Property="ControlTemplate">
+                    <Setter.Value>
+                        <ControlTemplate x:DataType="local:FormControlInfo">
+                            <Entry Style="{StaticResource FormNote}" Text="{Binding Node.Value, Mode=OneWay}" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <!--<ScrollView>
         <VerticalStackLayout Padding="30" Spacing="25">
             <Label Text="Enter value for x1" />
@@ -45,7 +69,7 @@
                             x:Name="entry"
                             Style="{Binding Style, Converter={x:Static local:ExpressionDemo.StyleConverter}, FallbackValue={x:StaticResource FormInput}}"
                             Text="{Binding Node.ExternalValue, Mode=TwoWay}" />-->
-                        <ContentView ControlTemplate="{Binding ControlTemplate}" />
+                        <local:FormControl Node="{Binding Node}" QuestionType="{Binding QuestionType}" />
                     </VerticalStackLayout>
                 </Grid>
             </DataTemplate>

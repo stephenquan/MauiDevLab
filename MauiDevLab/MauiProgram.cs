@@ -36,11 +36,11 @@ public static class MauiProgram
 
 #if DEBUG
 		builder.Logging.AddDebug();
+		builder.Logging.AddFilter("MauiDevLab", LogLevel.Debug);
 #endif
 
 		builder.Services.AddTransient<ExpressionManager>();
 		builder.Services.AddTransient<ExpressionDemo>();
-
 		return builder.Build();
 	}
 }

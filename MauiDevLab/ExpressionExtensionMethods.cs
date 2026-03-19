@@ -156,13 +156,29 @@ public static class ExpressionExtensionMethods
 					{
 						args[j] = rpn.Pop();
 					}
-					rpn.Push(token.FunctionInfo.Function(args));
-					if (token.FunctionInfo.IsDeterministic == false)
+					try
 					{
-						isDeterministic = false;
+						rpn.Push(token.FunctionInfo.Function(args));
+						if (token.FunctionInfo.IsDeterministic == false)
+						{
+							isDeterministic = false;
+						}
+					}
+					catch (Exception ex)
+					{
+						node.ValueKind = ExpressionValueKind.CalculateError;
+						ExpressionManager.Logger?.LogError(
+							ex,
+							"Error calculating function '{FunctionName}' with arguments {Arguments} for node {NodeRef}",
+							token.Text,
+							args,
+							node.NodeRef);
+						return false;
 					}
 					break;
 				default:
+					ExpressionManager.Logger?.LogError(
+						"Unknown token type {TokenType} for token '{TokenText}'", token.TokenType, token.Text);
 					node.ValueKind = ExpressionValueKind.CalculateError;
 					return false;
 			}
@@ -170,6 +186,8 @@ public static class ExpressionExtensionMethods
 
 		if (rpn.Count != 1)
 		{
+			ExpressionManager.Logger?.LogError(
+				"RPN evaluation for node {NodeRef} resulted in {StackCount} items on the stack instead of 1", node.NodeRef, rpn.Count);
 			node.ValueKind = ExpressionValueKind.CalculateError;
 			return false;
 		}

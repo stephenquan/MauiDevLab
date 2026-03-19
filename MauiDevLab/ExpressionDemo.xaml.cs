@@ -1,7 +1,6 @@
 // ExpressionDemo.xaml.cs
 
-using CommunityToolkit.Maui.Markup;
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Diagnostics;
 
 namespace MauiDevLab;
 
@@ -15,16 +14,16 @@ public partial class ExpressionDemo : ContentPage
 	CancellationTokenSource? cts;
 	public List<FormControlInfo> FormControls { get; set; } = [];
 
-	public static FuncConverter<string, Style?> StyleConverter = new(key => Application.Current?.Resources[key] as Style);
+	//public static FuncConverter<string, Style?> StyleConverter = new(key => Application.Current?.Resources[key] as Style);
 
-	public static Style? FormInput = Application.Current?.Resources["FormInput"] as Style;
-	public static Style? FormNote = Application.Current?.Resources["FormNote"] as Style;
+	//public static Style? FormInput = Application.Current?.Resources["FormInput"] as Style;
+	//public static Style? FormNote = Application.Current?.Resources["FormNote"] as Style;
 
-	public static ControlTemplate FormInputTemplate = new ControlTemplate(
-		() => new Entry { Style = FormInput }.Bind(Entry.TextProperty, "Node.Value", BindingMode.TwoWay));
+	//public static ControlTemplate FormInputTemplate = new ControlTemplate(
+	//	() => new Entry { Style = FormInput }.Bind(Entry.TextProperty, "Node.Value", BindingMode.TwoWay));
 
-	public static ControlTemplate FormNodeTemplate = new ControlTemplate(
-		() => new Entry { Style = FormNote }.Bind(Entry.TextProperty, "Node.Value", BindingMode.OneWay));
+	//public static ControlTemplate FormNodeTemplate = new ControlTemplate(
+	//	() => new Entry { Style = FormNote }.Bind(Entry.TextProperty, "Node.Value", BindingMode.OneWay));
 
 	public ExpressionDemo(ExpressionManager em)
 	{
@@ -34,16 +33,20 @@ public partial class ExpressionDemo : ContentPage
 		BindingContext = this;
 		InitializeComponent();
 
-		_ = PopulateModel();
+		Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), async () => await PopulateModelAsync());
 	}
 
-	async Task PopulateModel()
+	async Task PopulateModelAsync()
 	{
+		Stopwatch sw = Stopwatch.StartNew();
 		var controls = await Task.Run(() =>
 		{
-			FormControlInfo[] controls = new FormControlInfo[99999];
+			int numExpressions = 33333;
+			int numControls = numExpressions * 3;
 
-			Parallel.For(0, 33333, i =>
+			FormControlInfo[] controls = new FormControlInfo[numControls];
+
+			Parallel.For(0, numExpressions, i =>
 			{
 				string refA = $"/survey/x{i * 3 + 1}";
 				string refB = $"/survey/x{i * 3 + 2}";
@@ -71,33 +74,25 @@ public partial class ExpressionDemo : ContentPage
 				controls[i * 3 + 0] = new FormControlInfo
 				{
 					Node = nodeA,
-					NodeRef = refA,
 					Label = refA,
 					Hint = "Enter value.",
-					Style = "FormInput",
-					Mode = BindingMode.TwoWay,
-					ControlTemplate = FormInputTemplate,
+					QuestionType = "FormInput",
 				};
 
 				controls[i * 3 + 1] = new FormControlInfo
 				{
 					Node = nodeB,
-					NodeRef = refB,
 					Label = refB,
 					Hint = $"Enter value.",
-					Style = "FormInput",
-					Mode = BindingMode.TwoWay,
-					ControlTemplate = FormInputTemplate,
+					QuestionType = "FormInput",
 				};
 
 				controls[i * 3 + 2] = new FormControlInfo
 				{
 					Node = nodeC,
-					NodeRef = refC,
 					Label = refC,
 					Hint = $"Result of for {expression}",
-					Style = "FormNote",
-					ControlTemplate = FormNodeTemplate,
+					QuestionType = "FormNote",
 				};
 			});
 
@@ -106,11 +101,15 @@ public partial class ExpressionDemo : ContentPage
 
 		FormControls = controls.ToList();
 		OnPropertyChanged(nameof(FormControls));
+
+		sw.Stop();
+		Debug.WriteLine($"Model population took {sw.Elapsed.TotalSeconds} seconds.");
 	}
 
-	protected override void OnAppearing()
+	protected override void OnNavigatedTo(NavigatedToEventArgs args)
 	{
-		base.OnAppearing();
+		base.OnNavigatedTo(args);
+
 		if (cts is null)
 		{
 			cts = new CancellationTokenSource();
@@ -118,45 +117,19 @@ public partial class ExpressionDemo : ContentPage
 		}
 	}
 
-	protected override void OnDisappearing()
+	protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
 	{
-		base.OnDisappearing();
+		base.OnNavigatedFrom(args);
 
-		EM.StopCalculationLoop().GetAwaiter().GetResult();
-		cts?.Cancel();
-		cts?.Dispose();
-		cts = null;
-		FormControls.Clear();
-		EM.Clear();
+		Dispatcher.Dispatch(async () =>
+		{
+			await EM.StopCalculationLoopAsync();
+			cts?.Cancel();
+			cts?.Dispose();
+			cts = null;
+			FormControls.Clear();
+			EM.Clear();
+		});
 	}
 }
 
-public partial class FormControlInfo : ObservableObject
-{
-	[ObservableProperty]
-	public partial string NodeRef { get; set; } = "NODEREF";
-
-	[ObservableProperty]
-	public partial string Label { get; set; } = "LABEL";
-
-	[ObservableProperty]
-	public partial string Hint { get; set; } = "HINT";
-
-	[ObservableProperty]
-	public partial BindingMode Mode { get; set; } = BindingMode.OneWay;
-
-	[ObservableProperty]
-	public partial object? Value { get; set; }
-
-	[ObservableProperty]
-	public partial BindingBase Binding { get; set; }
-
-	[ObservableProperty]
-	public partial ControlTemplate? ControlTemplate { get; set; }
-
-	[ObservableProperty]
-	public partial string Style { get; set; } = string.Empty;
-
-	[ObservableProperty]
-	public partial ExpressionNode? Node { get; set; }
-}

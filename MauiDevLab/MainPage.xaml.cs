@@ -1,6 +1,6 @@
 ﻿// MainPage.xaml.cs
 
-//#define LEAK_DIAGNOSTICS
+#define LEAK_DIAGNOSTICS
 
 using System.Reflection;
 
