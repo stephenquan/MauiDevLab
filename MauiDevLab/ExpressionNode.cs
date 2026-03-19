@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace MauiDevLab;
 
-
 /// <summary>
 /// Represents a single value or expression in the expression graph.
 /// The value of an <see cref="ExpressionNode"/> can be set by user input or by evaluating the expression defined by the node.
@@ -56,7 +55,6 @@ public partial class ExpressionNode : ObservableObject
 		InternalValue = value;
 	}
 
-
 	/// <summary>
 	/// Gets the internally stored value for this node.
 	/// </summary>
@@ -85,7 +83,6 @@ public partial class ExpressionNode : ObservableObject
 	/// </summary>
 	public readonly List<ExpressionToken> Tokens = new();
 
-
 	/// <summary>
 	/// References to nodes that this node depends on as inputs.
 	/// </summary>
@@ -101,7 +98,6 @@ public partial class ExpressionNode : ObservableObject
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsDeterministic { get; internal set; } = true;
-
 
 	/// <summary>
 	/// Returns a string representation of the node's current value.

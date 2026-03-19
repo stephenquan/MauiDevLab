@@ -2,7 +2,6 @@
 
 namespace MauiDevLab;
 
-
 /// <summary>
 /// Describes the allowed arity (number of arguments) for a function or operator.
 /// </summary>
@@ -17,7 +16,6 @@ public readonly record struct AritySpec
 	/// The maximum number of arguments allowed, or null if unbounded.
 	/// </summary>
 	public int? Max { get; }
-
 
 	/// <summary>
 	/// Initializes a new <see cref="AritySpec"/> with the specified bounds.
@@ -107,6 +105,11 @@ public readonly record struct AritySpec
 	public bool IsFixed => Max is int max && max == Min;
 
 	/// <summary>
+	/// Indicates whether the arity is a range (minimum does not equal maximum).
+	/// </summary>
+	public bool IsRange => Max is int max && max != Min;
+
+	/// <summary>
 	/// Indicates whether the arity is unbounded (no maximum).
 	/// </summary>
 	public bool IsInfinite => Max is null;
@@ -118,7 +121,6 @@ public readonly record struct AritySpec
 	/// <returns>True if the argument count falls within the allowed range; otherwise false.</returns>
 	public bool Accepts(int arity) =>
 		arity >= Min && (Max is null || arity <= Max.Value);
-
 
 	/// <summary>
 	/// Returns a string representation of the arity specification.

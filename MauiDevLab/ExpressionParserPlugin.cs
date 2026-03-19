@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 
 namespace MauiDevLab;
 
-
 /// <summary>
 /// Provides the configurable syntax and function registry used by
 /// <see cref="ExpressionParser"/> and the expression evaluation engine.
@@ -106,7 +105,6 @@ public class ExpressionParserPlugin
 	/// </summary>
 	public Regex DoubleQuotedBodyRegex = ExpressionParserDefaults.DoubleQuotedBodyRegex();
 
-
 	/// <summary>
 	/// Registry of supported operators and functions.
 	/// </summary>
@@ -179,7 +177,6 @@ public class ExpressionParserPlugin
 		{ "negate", new (args => args.WrapFunc<double,double>(a => -a), AritySpec.One) },
 	};
 
-
 	/// <summary>
 	/// Compares two values for equality with strict type matching.
 	/// </summary>
@@ -202,7 +199,6 @@ public class ExpressionParserPlugin
 		}
 		return x.Equals(y);
 	}
-
 
 	/// <summary>
 	/// Returns the current date (local) as a Unix timestamp in milliseconds.

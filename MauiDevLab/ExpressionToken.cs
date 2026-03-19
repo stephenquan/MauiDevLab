@@ -2,7 +2,6 @@
 
 namespace MauiDevLab;
 
-
 /// <summary>
 /// Represents a single token produced by <see cref="ExpressionParser"/> and
 /// consumed by the expression evaluation engine.

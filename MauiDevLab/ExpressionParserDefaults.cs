@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 
 namespace MauiDevLab;
 
-
 /// <summary>
 /// Provides the default regular expressions used by <see cref="ExpressionParser"/> to tokenize and parse expressions.
 /// </summary>

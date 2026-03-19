@@ -2,7 +2,6 @@
 
 namespace MauiDevLab;
 
-
 /// <summary>
 /// Identifies the kind of token produced by the expression parser.
 /// </summary>

@@ -281,7 +281,6 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		return node;
 	}
 
-
 	/// <summary>
 	/// Enqueues a node for recalculation by reference.
 	/// </summary>
@@ -294,7 +293,6 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 			RecalculateNode(node);
 		}
 	}
-
 
 	/// <summary>
 	/// Enqueues a specific node for recalculation.
@@ -460,7 +458,6 @@ public partial class ExpressionManager : INotifyPropertyChanged, IDisposable
 		Dispose(true);
 		GC.SuppressFinalize(this);
 	}
-
 
 	/// <summary>
 	/// Clears all nodes, pending calculations, and dependency state.
